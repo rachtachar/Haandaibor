@@ -1,0 +1,92 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+<div class="bg-white shadow-lg rounded-lg overflow-hidden">
+    {% if post.image %}
+        <img class="h-64 w-full object-cover" src="{{ post.image.url }}" alt="{{ post.title }}">
+    {% endif %}
+
+    <div class="p-6 md:p-8">
+        <div class="flex justify-between items-start">
+            <div>
+                <span class="text-sm font-semibold text-indigo-600 uppercase">{{ post.get_category_display }}</span>
+                <h1 class="text-4xl font-bold text-gray-900 mt-1">{{ post.title }}</h1>
+                <p class="text-sm text-gray-500 mt-2">
+                    สร้างโดย <a href="{% url 'profile' post.owner.pk %}" class="font-medium text-indigo-600 hover:underline">{{ post.owner.username }}</a>
+                </p>
+            </div>
+            <div class="flex space-x-2">
+                {% if user == post.owner or user.is_superuser or user.is_staff %}
+                    <a href="{% url 'post-update' post.pk %}" class="px-4 py-2 text-sm font-medium text-white bg-yellow-500 rounded-md hover:bg-yellow-600">แก้ไข</a>
+                    <a href="{% url 'post-delete' post.pk %}" class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700">ลบ</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <p class="text-gray-700 mt-6">{{ post.description|linebreaks }}</p>
+
+        <div class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <dt class="text-sm font-medium text-gray-500">สมาชิก</dt>
+                <dd class="mt-1 text-xl font-semibold text-gray-900">{{ post.members.count |add:"1"}}/{{ post.member_limit }}</dd>
+            </div>
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <dt class="text-sm font-medium text-gray-500">ราคาเต็ม</dt>
+                <dd class="mt-1 text-xl font-semibold text-gray-900">{{ post.full_price }} บาท</dd>
+            </div>
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <dt class="text-sm font-medium text-gray-500">ราคาหาร</dt>
+                <dd class="mt-1 text-xl font-semibold text-gray-900">{{ post.divided_price }} บาท</dd>
+            </div>
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <dt class="text-sm font-medium text-gray-500">ห้องแชท</dt>
+                <dd class="mt-1">
+                    {% if user == post.owner or user in post.members.all %}
+                        <a href="{% url 'post-chat' post.pk %}" class="font-bold text-indigo-600 hover:underline">เข้าห้องแชท</a>
+                    {% else %}
+                        <span class="text-gray-400">สำหรับสมาชิก</span>
+                    {% endif %}
+                </dd>
+            </div>
+        </div>
+        
+        <div class="mt-8 text-center">
+            {% if user.is_authenticated and user != post.owner %}
+                {% if existing_request %}
+                    {% if existing_request.status == 'PENDING' %}
+                        <span class="inline-block w-full py-3 px-6 border border-transparent rounded-md text-base font-medium text-yellow-800 bg-yellow-100">ส่งคำขอแล้ว, รอการอนุมัติ</span>
+                    {% elif existing_request.status == 'APPROVED' %}
+                        <span class="inline-block w-full py-3 px-6 border border-transparent rounded-md text-base font-medium text-green-800 bg-green-100">คุณเป็นสมาชิกของโพสต์นี้แล้ว</span>
+                    {% elif existing_request.status == 'REJECTED' %}
+                        <span class="inline-block w-full py-3 px-6 border border-transparent rounded-md text-base font-medium text-red-800 bg-red-100">คำขอของคุณถูกปฏิเสธ</span>
+                    {% endif %}
+                {% else %}
+                    <a href="{% url 'post-join' post.pk %}" class="inline-block w-full py-3 px-6 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700">
+                        ส่งคำขอเข้าร่วม
+                    </a>
+                {% endif %}
+            {% endif %}
+        </div>
+        
+        {% if user == post.owner and join_requests %}
+        <div class="mt-8">
+            <h3 class="text-lg font-medium text-gray-900">คำขอเข้าร่วมที่รออนุมัติ</h3>
+            <ul class="mt-4 border-t border-b border-gray-200 divide-y divide-gray-200">
+                {% for req in join_requests %}
+                <li class="py-4 flex items-center justify-between">
+                    <div class="flex items-center">
+                        <img class="h-10 w-10 rounded-full" src="{{ req.user.profile_picture.url }}" alt="">
+                        <p class="ml-3 text-sm font-medium text-gray-900">{{ req.user.username }}</p>
+                    </div>
+                    <div class="flex space-x-2">
+                        <a href="{% url 'manage-request' req.id 'approve' %}" class="px-3 py-1 text-sm text-white bg-green-500 rounded-md hover:bg-green-600">อนุมัติ</a>
+                        <a href="{% url 'manage-request' req.id 'reject' %}" class="px-3 py-1 text-sm text-white bg-red-500 rounded-md hover:bg-red-600">ปฏิเสธ</a>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

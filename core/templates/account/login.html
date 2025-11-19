@@ -1,0 +1,115 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+<div class="flex items-center justify-center min-h-screen bg-gray-100">
+    <div class="relative flex flex-col m-6 space-y-8 bg-white shadow-2xl rounded-2xl md:flex-row md:space-y-0">
+        
+        <div class="flex flex-col justify-center p-8 md:p-14">
+            <span class="mb-3 text-4xl font-bold">Sign In</span>
+            <span class="font-light text-gray-400 mb-8">
+                Welcome back! Please enter your details.
+            </span>
+
+            {# ========== Form Section ========== #}
+            <form action="{% url 'account_login' %}" method="post">
+                {% csrf_token %}
+
+                {# Display non-field errors (e.g., "Incorrect username or password") #}
+                {% if form.non_field_errors %}
+                    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                        {% for error in form.non_field_errors %}
+                            <span class="block sm:inline">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {# Username/Email Field #}
+                <div class="py-4">
+                    <label for="{{ form.login.id_for_label }}" class="mb-2 text-md">Username or Email</label>
+                    <input 
+                        type="text"
+                        class="w-full p-2 border {% if form.login.errors %}border-red-500{% else %}border-gray-300{% endif %} rounded-md placeholder:font-light placeholder:text-gray-500"
+                        name="{{ form.login.name }}"
+                        id="{{ form.login.id_for_label }}"
+                        placeholder="Your Username or Email"
+                        value="{{ form.login.value|default:'' }}"
+                        required
+                    >
+                    {% for error in form.login.errors %}
+                        <p class="text-red-500 text-xs mt-1">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                {# Password Field #}
+                <div class="py-4">
+                    <label for="{{ form.password.id_for_label }}" class="mb-2 text-md">Password</label>
+                    <input 
+                        type="password"
+                        name="{{ form.password.name }}"
+                        id="{{ form.password.id_for_label }}"
+                        class="w-full p-2 border {% if form.password.errors %}border-red-500{% else %}border-gray-300{% endif %} rounded-md placeholder:font-light placeholder:text-gray-500"
+                        placeholder="Your Password"
+                        required
+                    >
+                    {% for error in form.password.errors %}
+                        <p class="text-red-500 text-xs mt-1">{{ error }}</p>
+                    {% endfor %}
+                </div>
+                
+                <button 
+                    type="submit"
+                    class="w-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white p-2 rounded-lg my-6 hover:bg-gradient-to-l hover:from-blue-500 hover:to-cyan-500"
+                >
+                    Sign In
+                </button>
+                
+                {# Forgot Password Link #}
+                <div class="text-center">
+                    <a href="{% url 'account_reset_password' %}" class="w-full text-sm font-medium text-gray-400 hover:text-blue-500">
+                        Forgot password?
+                    </a>
+                </div>
+
+            </form>
+
+            {# Social Login Section (Optional but recommended) #}
+            <div class="relative mt-6">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-300"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="px-2 bg-white text-gray-500">
+                        Or continue with
+                    </span>
+                </div>
+            </div>
+            <div class="mt-6">
+                {% comment %} <a href="{% url 'socialaccount_login' 'google' %}" class="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"> {% endcomment %}
+                    <span class="sr-only">Sign in with Google</span>
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 48 48">
+                        <path fill="#4285F4" d="M24 9.5c3.9 0 6.9 1.6 9.1 3.7l6.9-6.9C35.9 2.5 30.2 0 24 0 14.5 0 6.5 5.5 2.8 13.4l8.4 6.5c1.8-5.4 6.6-9.4 12.8-9.4z"></path>
+                        <path fill="#34A853" d="M46.2 25.1c0-1.6-.1-3.2-.4-4.7H24v8.9h12.5c-.5 2.9-2.2 5.4-4.8 7.1l7.3 5.7c4.3-4 6.9-10 6.9-17z"></path>
+                        <path fill="#FBBC05" d="M10.1 28.5c-.5-1.5-.8-3.1-.8-4.8s.3-3.3.8-4.8l-8.4-6.5C.9 16.2 0 20 0 24c0 4 .9 7.8 2.5 11.1l8.4-6.6z"></path>
+                        <path fill="#EA4335" d="M24 48c6.2 0 11.7-2.1 15.6-5.6l-7.3-5.7c-2.1 1.4-4.8 2.3-7.9 2.3-6.2 0-11.5-4-13.3-9.4l-8.4 6.5C6.5 42.5 14.5 48 24 48z"></path>
+                        <path fill="none" d="M0 0h48v48H0z"></path>
+                    </svg>
+                </a>
+            </div>
+
+        </div>
+
+        <div class="relative">
+            <div class="w-[400px] h-full hidden rounded-r-2xl md:block object-cover bg-gradient-to-r from-blue-500 to-cyan-500">
+                <div class="absolute flex flex-col top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center text-white w-full px-4">
+                    <h2 class="text-4xl font-bold mb-3">Welcome to HaanDaiBor</h2>
+                    <p class="text-lg font-light mb-6">Don't have an account?</p>
+                    {# Sign Up Link #}
+                    <a href="{% url 'account_signup' %}" class="border-2 border-white rounded-full px-8 py-2 font-semibold hover:bg-white hover:text-blue-600 transition-all duration-300">
+                        Sign Up
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

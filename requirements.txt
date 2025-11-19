@@ -1,0 +1,6 @@
+django
+reportlab
+ipython
+faker
+pyaml
+pillow
