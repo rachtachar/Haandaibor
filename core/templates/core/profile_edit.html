@@ -2,28 +2,45 @@
 {% load crispy_forms_tags %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-md">
-    <h1 class="text-2xl font-bold text-gray-800 mb-6">
-        แก้ไขโปรไฟล์
-    </h1>
-    
-    <div class="text-center mb-6">
-        <img class="w-32 h-32 rounded-full mx-auto" src="{{ user.profile_picture.url }}" alt="Current profile picture">
-    </div>
+<div class="min-h-screen bg-gradient-to-b from-sky-200 via-blue-50 to-white py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden flex items-center justify-center">
 
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        <div class="space-y-4">
-            {{ form|crispy }}
+    <div class="absolute top-10 left-10 w-48 h-48 bg-white/40 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute bottom-20 right-10 w-64 h-64 bg-sky-300/20 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="w-full max-w-2xl bg-white/80 backdrop-blur-md p-8 md:p-10 rounded-3xl shadow-xl shadow-sky-200/40 border border-sky-100 relative z-10">
+        
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-extrabold text-sky-900">
+                ⚙️ แก้ไขโปรไฟล์
+            </h1>
+            <p class="mt-2 text-sky-600/80 text-sm">อัปเดตข้อมูลส่วนตัวของคุณให้เป็นปัจจุบัน</p>
         </div>
-        <div class="mt-8 flex justify-end space-x-3">
-            <a href="{% url 'profile' user.pk %}" class="px-6 py-2 rounded-md text-sm font-medium border border-gray-300 hover:bg-gray-50">
-                ยกเลิก
-            </a>
-            <button type="submit" class="px-6 py-2 rounded-md text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
-                บันทึกการเปลี่ยนแปลง
-            </button>
+        
+        <div class="text-center mb-8">
+            <div class="inline-block relative group">
+                 <img class="w-32 h-32 rounded-full mx-auto object-cover border-4 border-white shadow-md ring-2 ring-sky-100 transition-transform group-hover:scale-105" src="{{ user.profile_picture.url }}" alt="Current profile picture">
+                 <span class="absolute bottom-0 right-0 bg-sky-100 text-sky-600 p-2 rounded-full border-2 border-white shadow-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                 </span>
+            </div>
         </div>
-    </form>
+
+        <form method="post" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+            
+            <div class="space-y-4 text-gray-700">
+                {{ form|crispy }}
+            </div>
+            
+            <div class="mt-8 pt-6 border-t border-sky-100 flex flex-col sm:flex-row gap-3 justify-end">
+                <a href="{% url 'profile' user.pk %}" class="w-full sm:w-auto px-6 py-3 border border-sky-200 rounded-full text-sky-600 font-medium hover:bg-sky-50 transition-colors text-center">
+                    ยกเลิก
+                </a>
+                <button type="submit" class="w-full sm:w-auto px-8 py-3 border border-transparent text-base font-bold rounded-full text-white bg-gradient-to-r from-sky-400 to-blue-500 hover:from-sky-500 hover:to-blue-600 shadow-lg hover:shadow-sky-300/50 transform hover:-translate-y-0.5 transition-all duration-200">
+                    บันทึกการเปลี่ยนแปลง
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 {% endblock %}

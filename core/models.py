@@ -2,7 +2,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
-# 1. ข้อมูลผู้ใช้ (ขยายความสามารถจาก User เดิมของ Django)
+# 1. ข้อมูลผู้ใช้
 class User(AbstractUser):
     bio = models.TextField(blank=True, null=True)
     phone_number = models.CharField(max_length=15, blank=True, null=True)
@@ -23,12 +23,34 @@ class Post(models.Model):
     category = models.CharField(max_length=10, choices=CATEGORY_CHOICES)
     member_limit = models.PositiveIntegerField(default=1)
     full_price = models.DecimalField(max_digits=10, decimal_places=2)
-    divided_price = models.DecimalField(max_digits=10, decimal_places=2)
+    
+    # [ลบออก] ไม่ต้องเก็บค่านี้ใน DB แล้ว เพราะจะคำนวณสดๆ แทน
+    # divided_price = models.DecimalField(max_digits=10, decimal_places=2) 
+    
     image = models.ImageField(upload_to='post_images/', blank=True, null=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='owned_posts')
     members = models.ManyToManyField(User, related_name='joined_posts', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    @property
+    def divided_price(self):
+        """
+        คำนวณราคาหารตามจำนวนคนที่รับได้: ราคาเต็ม / จำนวนคนสูงสุด (member_limit)
+        """
+        # ป้องกันการหารด้วย 0
+        if self.member_limit > 0:
+            return round(self.full_price / self.member_limit, 2)
+        return self.full_price
+    def save(self, *args, **kwargs):
+        # ตรวจสอบว่าเป็นโพสต์ที่สร้างใหม่หรือไม่ (ยังไม่มี ID)
+        is_new = self.pk is None 
+        
+        # บันทึกข้อมูลโพสต์ลงฐานข้อมูลก่อน (เพื่อให้มี ID สำหรับสร้างความสัมพันธ์)
+        super().save(*args, **kwargs)
+        
+        # ถ้าเป็นโพสต์ใหม่ ให้เพิ่ม owner เข้าไปใน members ทันที
+        if is_new and self.owner:
+            self.members.add(self.owner)
     def __str__(self):
         return self.title
 

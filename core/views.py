@@ -12,13 +12,19 @@ from .forms import PostForm, ChatMessageForm, ProfileCommentForm, ProfileUpdateF
 from django.http import HttpResponseForbidden
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
+from django.contrib import messages
 
 
 # ========== ส่วนจัดการโพสต์ (CRUD) ==========
+class HomepageView(ListView):
+    model = Post
+    template_name = 'core/new_home.html'
+    context_object_name = 'posts'
+    ordering = ['-created_at'] # เรียงโพสต์ใหม่สุดขึ้นก่อน
 
 class PostListView(ListView):
     model = Post
-    template_name = 'core/home.html'
+    template_name = 'core/post_list.html'
     context_object_name = 'posts'
     ordering = ['-created_at'] # เรียงโพสต์ใหม่สุดขึ้นก่อน
 
@@ -41,7 +47,7 @@ class PostDetailView(DetailView):
 class PostCreateView(LoginRequiredMixin, CreateView):
     model = Post
     form_class = PostForm
-    success_url = reverse_lazy('home') # กลับไปหน้าแรกหลังสร้างสำเร็จ
+    success_url = reverse_lazy('post-list') # กลับไปหน้าแรกหลังสร้างสำเร็จ
 
     def form_valid(self, form):
         form.instance.owner = self.request.user
@@ -50,7 +56,7 @@ class PostCreateView(LoginRequiredMixin, CreateView):
 class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Post
     form_class = PostForm
-    success_url = reverse_lazy('home')
+    success_url = reverse_lazy('post-list')
 
     def test_func(self):
         post = self.get_object()
@@ -59,7 +65,7 @@ class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 # ---- เพิ่ม View สำหรับลบโพสต์ ----
 class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Post
-    success_url = reverse_lazy('home')
+    success_url = reverse_lazy('post-list')
     # template_name คือ core/post_confirm_delete.html (อัตโนมัติ)
 
     def test_func(self):
@@ -90,10 +96,18 @@ def manage_join_request(request, request_id, action):
         return HttpResponseForbidden("You are not allowed to manage this request.")
 
     if action == 'approve':
+        # ★ 2. เพิ่มเงื่อนไขตรวจสอบว่าปาร์ตี้เต็มหรือยัง ★
+        if post.members.count() >= post.member_limit:
+            messages.error(request, "ไม่สามารถอนุมัติได้ เนื่องจากปาร์ตี้เต็มแล้ว!")
+            return redirect('post-detail', pk=post.pk)
+
         join_request.status = 'APPROVED'
         post.members.add(join_request.user) # เพิ่ม user เข้ากลุ่ม members
+        messages.success(request, f"อนุมัติคุณ {join_request.user.username} เข้าปาร์ตี้เรียบร้อยแล้ว")
+        
     elif action == 'reject':
         join_request.status = 'REJECTED'
+        messages.info(request, "ปฏิเสธคำขอแล้ว")
     
     join_request.save()
     return redirect('post-detail', pk=post.pk)

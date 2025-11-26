@@ -2,26 +2,35 @@
 {% load socialaccount %} 
 
 {% block content %}
-<div class="flex items-center justify-center min-h-screen bg-gray-100">
-    <div class="relative flex flex-col m-6 space-y-8 bg-white shadow-2xl rounded-2xl md:flex-row md:space-y-0">
+<div class="min-h-screen bg-gradient-to-b from-sky-200 via-blue-50 to-white py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden flex items-center justify-center">
+
+    <div class="absolute top-10 left-10 w-48 h-48 bg-white/40 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute bottom-20 right-10 w-64 h-64 bg-sky-300/20 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="relative flex flex-col bg-white/90 backdrop-blur-xl shadow-2xl shadow-sky-200/50 rounded-3xl md:flex-row w-full max-w-4xl overflow-hidden border border-white/50 z-10">
         
-        <div class="relative">
-            <div class="w-[400px] h-full hidden rounded-l-2xl md:block object-cover bg-gradient-to-r from-blue-500 to-cyan-500">
-                <div class="absolute flex flex-col top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center text-white w-full px-4">
-                    <h2 class="text-4xl font-bold mb-3">Welcome Back!</h2>
-                    <p class="text-lg font-light mb-6">Already have an account?</p>
-                    <a href="{% url 'account_login' %}" class="border-2 border-white rounded-full px-8 py-2 font-semibold hover:bg-white hover:text-blue-600 transition-all duration-300">
-                        Sign In
-                    </a>
-                </div>
+        <div class="relative hidden md:flex w-[400px] bg-gradient-to-br from-sky-400 to-blue-600 flex-col justify-center items-center text-center text-white px-8 overflow-hidden">
+            <div class="absolute top-[-10%] left-[-10%] w-60 h-60 bg-white/10 rounded-full blur-3xl"></div>
+            <div class="absolute bottom-[-10%] right-[-10%] w-60 h-60 bg-blue-800/20 rounded-full blur-2xl"></div>
+
+            <div class="z-10">
+                <h2 class="text-4xl font-bold mb-4 drop-shadow-md">ยินดีต้อนรับกลับ!</h2>
+                <p class="text-lg font-light mb-8 text-blue-50">
+                    หากคุณมีบัญชีอยู่แล้ว<br>สามารถเข้าสู่ระบบได้เลย
+                </p>
+                <a href="{% url 'account_login' %}" class="px-8 py-3 border-2 border-white/80 rounded-full font-semibold text-white hover:bg-white hover:text-blue-600 transition-all duration-300 shadow-md hover:shadow-lg">
+                    เข้าสู่ระบบ
+                </a>
             </div>
         </div>
 
-        <div class="flex flex-col justify-center p-8 md:p-14">
-            <span class="mb-3 text-4xl font-bold">Create Account</span>
-            <span class="font-light text-gray-400 mb-8">
-                Please enter your details to sign up.
-            </span>
+        <div class="flex-1 flex flex-col justify-center p-8 md:p-14">
+            <div class="mb-6 text-center md:text-left">
+                <span class="block text-3xl font-extrabold text-sky-900 mb-2">สร้างบัญชีใหม่ 🚀</span>
+                <span class="font-light text-sky-600/80">
+                    กรอกข้อมูลด้านล่างเพื่อเริ่มต้นใช้งาน
+                </span>
+            </div>
             
             {# ========== Form Section ========== #}
             <form id="signup_form" method="post" action="{% url 'account_signup' %}">
@@ -29,61 +38,62 @@
 
                 {# Display non-field errors #}
                 {% if form.non_field_errors %}
-                    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                    <div class="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl relative mb-6 text-sm" role="alert">
                         {% for error in form.non_field_errors %}
-                            <span class="block sm:inline">{{ error }}</span>
+                            <span class="block sm:inline flex items-center"><svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>{{ error }}</span>
                         {% endfor %}
                     </div>
                 {% endif %}
 
-                {# Render each form field manually to apply custom styles #}
+                {# Render each form field manually #}
                 {% for field in form %}
                     <div class="py-2">
-
-                        
-                        <label for="{{ field.id_for_label }}" class="mb-2 text-md">{{ field.label }}</label>
+                        <label for="{{ field.id_for_label }}" class="mb-2 text-sm font-medium text-sky-800 block">
+                            {{ field.label }}
+                        </label>
                         <input
                             type="{{ field.field.widget.input_type }}"
                             name="{{ field.name }}"
                             id="{{ field.id_for_label }}"
-                            class="w-full p-2 border {% if field.errors %}border-red-500{% else %}border-gray-300{% endif %} rounded-md placeholder:font-light placeholder:text-gray-500"
+                            class="w-full px-4 py-3 border {% if field.errors %}border-red-300 focus:border-red-500 focus:ring-red-200{% else %}border-sky-200 focus:border-sky-400 focus:ring-sky-200{% endif %} rounded-xl focus:outline-none focus:ring-2 placeholder-sky-300/70 text-gray-700 transition-all bg-sky-50/30"
                             placeholder="{{ field.field.widget.attrs.placeholder|default:'' }}"
                         >
                         {% for error in field.errors %}
-                            <p class="text-red-500 text-xs mt-1">{{ error }}</p>
+                            <p class="text-red-500 text-xs mt-1 ml-1">{{ error }}</p>
                         {% endfor %}
                     </div>
                 {% endfor %}
                 
                 <button 
                     type="submit"
-                    class="w-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white p-2 rounded-lg my-6 hover:bg-gradient-to-l hover:from-blue-500 hover:to-cyan-500"
+                    class="w-full py-3 mt-6 bg-gradient-to-r from-sky-400 to-blue-500 text-white font-bold rounded-full shadow-lg hover:shadow-sky-300/50 hover:from-sky-500 hover:to-blue-600 transform hover:-translate-y-0.5 transition-all duration-200"
                 >
-                    Sign Up
+                    สมัครสมาชิก
                 </button>
             </form>
 
             {# Social Login Section #}
-            <div class="relative mt-6">
+            <div class="relative mt-8 mb-4">
                 <div class="absolute inset-0 flex items-center">
-                    <div class="w-full border-t border-gray-300"></div>
+                    <div class="w-full border-t border-sky-100"></div>
                 </div>
-                <div class="relative flex justify-center text-sm">
-                    <span class="px-2 bg-white text-gray-500">
-                        Or sign up with
+                <div class="relative flex justify-center text-xs uppercase">
+                    <span class="px-3 bg-white text-sky-400 font-medium tracking-wider">
+                        หรือสมัครด้วย
                     </span>
                 </div>
             </div>
-            <div class="mt-6">
-                <a href="{% provider_login_url 'google' %}" class="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                    <span class="sr-only">Sign up with Google</span>
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 48 48">
+
+            <div>
+                <a href="{% provider_login_url 'google' %}" class="w-full inline-flex justify-center items-center py-2.5 px-4 border border-sky-100 rounded-xl shadow-sm bg-white text-sm font-medium text-gray-600 hover:bg-sky-50 hover:border-sky-200 transition-all">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 48 48">
                         <path fill="#4285F4" d="M24 9.5c3.9 0 6.9 1.6 9.1 3.7l6.9-6.9C35.9 2.5 30.2 0 24 0 14.5 0 6.5 5.5 2.8 13.4l8.4 6.5c1.8-5.4 6.6-9.4 12.8-9.4z"></path>
                         <path fill="#34A853" d="M46.2 25.1c0-1.6-.1-3.2-.4-4.7H24v8.9h12.5c-.5 2.9-2.2 5.4-4.8 7.1l7.3 5.7c4.3-4 6.9-10 6.9-17z"></path>
                         <path fill="#FBBC05" d="M10.1 28.5c-.5-1.5-.8-3.1-.8-4.8s.3-3.3.8-4.8l-8.4-6.5C.9 16.2 0 20 0 24c0 4 .9 7.8 2.5 11.1l8.4-6.6z"></path>
                         <path fill="#EA4335" d="M24 48c6.2 0 11.7-2.1 15.6-5.6l-7.3-5.7c-2.1 1.4-4.8 2.3-7.9 2.3-6.2 0-11.5-4-13.3-9.4l-8.4 6.5C6.5 42.5 14.5 48 24 48z"></path>
                         <path fill="none" d="M0 0h48v48H0z"></path>
                     </svg>
+                    Google
                 </a>
             </div>
 

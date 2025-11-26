@@ -15,11 +15,13 @@ from .views import (
     get_chat_messages,
     send_chat_message,
     kick_member,
+    HomepageView,
 )
 
 urlpatterns = [
     # URLs for Posts
-    path('', PostListView.as_view(), name='home'),
+    path('', HomepageView.as_view(), name='home'),
+    path('post', PostListView.as_view(), name='post-list'),
     path('post/new/', PostCreateView.as_view(), name='post-create'),
     path('post/<int:pk>/', PostDetailView.as_view(), name='post-detail'),
     path('post/<int:pk>/update/', PostUpdateView.as_view(), name='post-update'),

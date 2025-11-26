@@ -4,29 +4,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HaanDaibor</title>
+    <title>HaanDaiBor</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Prompt', sans-serif;
+        }
+    </style>
 </head>
-<body class="bg-gray-100">
-    <nav class="bg-white shadow-md bg-gradient-to-r from-blue-500 to-cyan-500">
+<body class="bg-sky-50 text-gray-800">
+    <nav class="bg-white/90 backdrop-blur-md shadow-sm border-b border-sky-100 sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 ">
                 <div class="flex">
                     <div class="flex-shrink-0 flex items-center">
-                        <a href="{% url 'home' %}" class="font-bold text-xl text-indigo-50">HaanDaibor</a>
+                        <a href="{% url 'home' %}" class="font-bold text-2xl text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 transition-all">
+                            HaanDaiBor
+                        </a>
                     </div>
                 </div>
-                <div class="flex items-center">
+                <div class="flex items-center space-x-1 md:space-x-4">
                     {% if user.is_authenticated %}
-                        <a href="{% url 'post-create' %}" class="text-indigo-50 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">สร้างโพสต์</a>
-                        <a href="{% url 'profile' user.pk %}" class="text-indigo-50 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">โปรไฟล์ของฉัน</a>
+                        <a href="{% url 'post-list' %}" class="text-gray-600 hover:text-sky-600 hover:bg-sky-50 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
+                            ดูปาร์ตี้
+                        </a>
+                        <a href="{% url 'post-create' %}" class="text-gray-600 hover:text-sky-600 hover:bg-sky-50 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
+                            สร้างปาร์ตี้
+                        </a>
+                        <a href="{% url 'profile' user.pk %}" class="text-gray-600 hover:text-sky-600 hover:bg-sky-50 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
+                            โปรไฟล์ของฉัน
+                        </a>
                         <form method="post" action="{% url 'account_logout' %}">
                             {% csrf_token %}
-                            <button type="submit" class="text-indigo-50 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium">ออกจากระบบ</button>
+                            <button type="submit" class="text-gray-500 hover:text-red-500 hover:bg-red-50 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
+                                ออกจากระบบ
+                            </button>
                         </form>
                     {% else %}
-                        <a href="{% url 'account_login' %}" class="ml-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white oklch(50% 0.134 242.749) hover:bg-gray-700">เข้าสู่ระบบ</a>
-                        <a href="{% url 'account_signup' %}" class="ml-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white oklch(50% 0.134 242.749) hover:bg-gray-700">
+                        <a href="{% url 'account_login' %}" class="ml-2 inline-flex items-center px-4 py-2 border border-sky-200 text-sm font-medium rounded-full text-sky-600 bg-white hover:bg-sky-50 hover:border-sky-300 transition-all">
+                            เข้าสู่ระบบ
+                        </a>
+                        <a href="{% url 'account_signup' %}" class="ml-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-full text-white bg-gradient-to-r from-sky-400 to-blue-500 hover:from-sky-500 hover:to-blue-600 shadow-md hover:shadow-lg hover:shadow-sky-200/50 transition-all">
                             สมัครสมาชิก
                         </a>
                     {% endif %}
@@ -36,6 +55,20 @@
     </nav>
 
     <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        
+        {% if messages %}
+            <div class="mb-6 space-y-2">
+                {% for message in messages %}
+                    <div class="p-4 rounded-lg shadow-sm border 
+                        {% if message.tags == 'error' %} bg-red-50 border-red-200 text-red-700 
+                        {% elif message.tags == 'success' %} bg-green-50 border-green-200 text-green-700 
+                        {% else %} bg-blue-50 border-blue-200 text-blue-700 {% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
         {% block content %}
         {% endblock %}
     </main>

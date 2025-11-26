@@ -28,7 +28,7 @@
         <div class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
             <div class="bg-gray-50 p-4 rounded-lg">
                 <dt class="text-sm font-medium text-gray-500">สมาชิก</dt>
-                <dd class="mt-1 text-xl font-semibold text-gray-900">{{ post.members.count |add:"1"}}/{{ post.member_limit }}</dd>
+                <dd class="mt-1 text-xl font-semibold text-gray-900">{{ post.members.count}}/{{ post.member_limit }}</dd>
             </div>
             <div class="bg-gray-50 p-4 rounded-lg">
                 <dt class="text-sm font-medium text-gray-500">ราคาเต็ม</dt>
@@ -51,7 +51,7 @@
         </div>
         
         <div class="mt-8 text-center">
-            {% if user.is_authenticated and user != post.owner %}
+            {% if user.is_authenticated and user != post.owner and post.member_limit > post.members.count %}
                 {% if existing_request %}
                     {% if existing_request.status == 'PENDING' %}
                         <span class="inline-block w-full py-3 px-6 border border-transparent rounded-md text-base font-medium text-yellow-800 bg-yellow-100">ส่งคำขอแล้ว, รอการอนุมัติ</span>
@@ -90,20 +90,23 @@
     </div>
 </div>
 <div class="mt-8">
-            <h3 class="text-lg font-medium text-gray-900 border-b pb-2 mb-4">สมาชิกในปาร์ตี้ ({{ post.members.count |add:"1"}}/{{ post.member_limit }})</h3>
-            
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div class="flex items-center justify-between p-3 bg-indigo-50 rounded-lg border border-indigo-100">
-                    <div class="flex items-center">
-                        <img class="h-10 w-10 rounded-full object-cover" src="{{ post.owner.profile_picture.url }}" alt="">
-                        <div class="ml-3">
-                            <p class="text-sm font-bold text-indigo-900">{{ post.owner.username }}</p>
-                            <p class="text-xs text-indigo-500">เจ้าของปาร์ตี้ 👑</p>
-                        </div>
-                    </div>
+    <h3 class="text-lg font-medium text-gray-900 border-b pb-2 mb-4">
+        สมาชิกในปาร์ตี้ ({{ post.members.count }}/{{ post.member_limit }})
+    </h3>
+    
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="flex items-center justify-between p-3 bg-indigo-50 rounded-lg border border-indigo-100">
+            <div class="flex items-center">
+                <img class="h-10 w-10 rounded-full object-cover" src="{{ post.owner.profile_picture.url }}" alt="">
+                <div class="ml-3">
+                    <p class="text-sm font-bold text-indigo-900">{{ post.owner.username }}</p>
+                    <p class="text-xs text-indigo-500">เจ้าของปาร์ตี้ 👑</p>
                 </div>
+            </div>
+        </div>
 
-                {% for member in post.members.all %}
+        {% for member in post.members.all %}
+            {% if member != post.owner %}
                 <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 shadow-sm">
                     <div class="flex items-center">
                         <a href="{% url 'profile' member.pk %}">
@@ -125,11 +128,12 @@
                         </a>
                     {% endif %}
                 </div>
-                {% empty %}
-                    {% if post.members.count == 0 %}
-                        <p class="text-gray-500 text-sm col-span-full">ยังไม่มีสมาชิกเข้าร่วม</p>
-                    {% endif %}
-                {% endfor %}
-            </div>
-        </div>
+            {% endif %}
+        {% endfor %}
+
+        {% if post.members.count == 1 %}
+            <p class="text-gray-500 text-sm col-span-full mt-2">ยังไม่มีสมาชิกคนอื่นเข้าร่วม</p>
+        {% endif %}
+    </div>
+</div>
 {% endblock %}

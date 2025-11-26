@@ -8,7 +8,7 @@
         <div class="p-4 border-b bg-gradient-to-r from-blue-500 to-cyan-500 rounded-t-lg flex justify-between items-center text-white">
             <div>
                 <h1 class="text-xl font-bold">💬 {{ post.title }}</h1>
-                <p class="text-xs opacity-90">สมาชิก: {{ post.members.count|add:"1" }} คน</p>
+                <p class="text-xs opacity-90">สมาชิก: {{ post.members.count }} คน</p>
             </div>
             <a href="{% url 'post-detail' post.pk %}" class="text-sm bg-white/20 hover:bg-white/30 px-3 py-1 rounded-full transition">
                 &larr; กลับ
