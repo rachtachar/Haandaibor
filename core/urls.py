@@ -12,6 +12,9 @@ from .views import (
     PostChatView,
     ProfileView,
     add_profile_comment,
+    get_chat_messages,
+    send_chat_message,
+    kick_member,
 )
 
 urlpatterns = [
@@ -28,9 +31,23 @@ urlpatterns = [
 
     # URL for Chat
     path('post/<int:pk>/chat/', PostChatView.as_view(), name='post-chat'),
+    path('post/<int:pk>/chat/api/get/', get_chat_messages, name='chat-api-get'),
+    path('post/<int:pk>/chat/api/send/', send_chat_message, name='chat-api-send'),
+    
+
+    #สำหรับ Redis
+    # # 1. หน้าห้องแชทหลัก
+    # path('post/<int:pk>/chat/', PostChatView.as_view(), name='post-chat'),
+    # # 2. API ดึงข้อความ
+    # path('post/<int:pk>/chat/api/get/', get_chat_messages, name='chat-api-get'),
+    # # 3. API ส่งข้อความ
+    # path('post/<int:pk>/chat/api/send/', send_chat_message, name='chat-api-send'),
 
     # URLs for Profiles
     path('profile/<int:pk>/', ProfileView.as_view(), name='profile'),
     path('profile/edit/', ProfileUpdateView.as_view(), name='profile-edit'),
     path('profile/<int:pk>/comment/', add_profile_comment, name='add-comment'),
+
+    # URL สำหรับเตะสมาชิก
+    path('post/<int:pk>/kick/<int:user_id>/', kick_member, name='kick-member'),
 ]

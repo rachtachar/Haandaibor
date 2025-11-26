@@ -89,4 +89,47 @@
         {% endif %}
     </div>
 </div>
+<div class="mt-8">
+            <h3 class="text-lg font-medium text-gray-900 border-b pb-2 mb-4">สมาชิกในปาร์ตี้ ({{ post.members.count |add:"1"}}/{{ post.member_limit }})</h3>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="flex items-center justify-between p-3 bg-indigo-50 rounded-lg border border-indigo-100">
+                    <div class="flex items-center">
+                        <img class="h-10 w-10 rounded-full object-cover" src="{{ post.owner.profile_picture.url }}" alt="">
+                        <div class="ml-3">
+                            <p class="text-sm font-bold text-indigo-900">{{ post.owner.username }}</p>
+                            <p class="text-xs text-indigo-500">เจ้าของปาร์ตี้ 👑</p>
+                        </div>
+                    </div>
+                </div>
+
+                {% for member in post.members.all %}
+                <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 shadow-sm">
+                    <div class="flex items-center">
+                        <a href="{% url 'profile' member.pk %}">
+                            <img class="h-10 w-10 rounded-full object-cover" src="{{ member.profile_picture.url }}" alt="">
+                        </a>
+                        <div class="ml-3">
+                            <a href="{% url 'profile' member.pk %}" class="text-sm font-medium text-gray-900 hover:underline">
+                                {{ member.username }}
+                            </a>
+                            <p class="text-xs text-gray-500">สมาชิก</p>
+                        </div>
+                    </div>
+
+                    {% if user == post.owner %}
+                        <a href="{% url 'kick-member' post.pk member.pk %}" 
+                           onclick="return confirm('คุณแน่ใจหรือไม่ที่จะเตะ {{ member.username }} ออกจากปาร์ตี้?');"
+                           class="ml-2 px-3 py-1 text-xs font-medium text-red-600 bg-red-100 rounded-full hover:bg-red-200 transition-colors">
+                            เตะออก
+                        </a>
+                    {% endif %}
+                </div>
+                {% empty %}
+                    {% if post.members.count == 0 %}
+                        <p class="text-gray-500 text-sm col-span-full">ยังไม่มีสมาชิกเข้าร่วม</p>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
 {% endblock %}

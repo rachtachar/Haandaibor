@@ -10,6 +10,9 @@ from django.contrib.auth.decorators import login_required
 from .models import Post, User, JoinRequest, ChatMessage, ProfileComment
 from .forms import PostForm, ChatMessageForm, ProfileCommentForm, ProfileUpdateForm
 from django.http import HttpResponseForbidden
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+
 
 # ========== ส่วนจัดการโพสต์ (CRUD) ==========
 
@@ -95,34 +98,178 @@ def manage_join_request(request, request_id, action):
     join_request.save()
     return redirect('post-detail', pk=post.pk)
 
+@login_required
+def kick_member(request, pk, user_id):
+    post = get_object_or_404(Post, pk=pk)
+    user_to_kick = get_object_or_404(User, pk=user_id)
+
+    # 1. ตรวจสอบสิทธิ์: คนเตะต้องเป็นเจ้าของโพสต์เท่านั้น
+    if request.user != post.owner:
+        return HttpResponseForbidden("คุณไม่มีสิทธิ์เตะสมาชิกออกจากกลุ่มนี้")
+
+    # 2. ลบออกจากสมาชิก (Many-to-Many field)
+    post.members.remove(user_to_kick)
+
+    # 3. (สำคัญ) ลบคำขอเข้าร่วม (JoinRequest) เดิมทิ้งด้วย
+    # เพื่อให้สถานะรีเซ็ต เผื่อในอนาคตเขาอยากขอเข้าใหม่ หรือกันความสับสน
+    JoinRequest.objects.filter(post=post, user=user_to_kick).delete()
+
+    return redirect('post-detail', pk=post.pk)
 
 # ========== ส่วนแชท ==========
 
+# 1. หน้าห้องแชท (HTML)
 class PostChatView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
     model = Post
     template_name = 'core/post_chat.html'
     context_object_name = 'post'
 
     def test_func(self):
-        # อนุญาตเฉพาะเจ้าของและสมาชิกที่อนุมัติแล้วเท่านั้น
         post = self.get_object()
         return self.request.user == post.owner or self.request.user in post.members.all()
-
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['chat_messages'] = ChatMessage.objects.filter(post=self.object).order_by('timestamp')
-        context['chat_form'] = ChatMessageForm()
+        # ส่งฟอร์มเปล่าไปให้หน้าเว็บ (เผื่อจะใช้ CSRF token หรือ validate)
+        context['chat_form'] = ChatMessageForm() 
         return context
 
-    def post(self, request, *args, **kwargs):
-        post = self.get_object()
-        form = ChatMessageForm(request.POST)
-        if form.is_valid():
-            message = form.save(commit=False)
-            message.post = post
-            message.user = request.user
-            message.save()
-        return redirect('post-chat', pk=post.pk)
+# 2. API สำหรับดึงข้อความ (เรียกทุก 2 วิ)
+@login_required
+def get_chat_messages(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    
+    # เช็คสิทธิ์ (Security)
+    if request.user != post.owner and request.user not in post.members.all():
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    
+    # ดึงข้อความทั้งหมด
+    messages = ChatMessage.objects.filter(post=post).order_by('timestamp')
+    
+    data = []
+    for msg in messages:
+        data.append({
+            'user': msg.user.username,
+            'profile_url': msg.user.profile_picture.url if msg.user.profile_picture else '',
+            'message': msg.message,
+            'timestamp': msg.timestamp.strftime('%H:%M'),
+            'is_me': msg.user == request.user # ตัวบอกฝั่งซ้าย/ขวา
+        })
+    
+    return JsonResponse({'messages': data})
+
+# 3. API สำหรับส่งข้อความ (Save ลง Database)
+@login_required
+@require_POST
+def send_chat_message(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    
+    # เช็คสิทธิ์
+    if request.user != post.owner and request.user not in post.members.all():
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    
+    message_text = request.POST.get('message')
+    
+    if message_text:
+        ChatMessage.objects.create(
+            post=post,
+            user=request.user,
+            message=message_text
+        )
+        return JsonResponse({'status': 'success'})
+    
+    return JsonResponse({'status': 'error', 'message': 'Empty message'}, status=400)
+
+# class PostChatView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
+#     model = Post
+#     template_name = 'core/post_chat.html'
+#     context_object_name = 'post'
+
+#     def test_func(self):
+#         # อนุญาตเฉพาะเจ้าของและสมาชิกที่อนุมัติแล้วเท่านั้น
+#         post = self.get_object()
+#         return self.request.user == post.owner or self.request.user in post.members.all()
+
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         context['chat_messages'] = ChatMessage.objects.filter(post=self.object).order_by('timestamp')
+#         context['chat_form'] = ChatMessageForm()
+#         return context
+
+#     def post(self, request, *args, **kwargs):
+#         post = self.get_object()
+#         form = ChatMessageForm(request.POST)
+#         if form.is_valid():
+#             message = form.save(commit=False)
+#             message.post = post
+#             message.user = request.user
+#             message.save()
+#         return redirect('post-chat', pk=post.pk)
+
+
+
+
+#ไว้สำหรรับใช้ Redis 
+# # 1. View สำหรับแสดงหน้าห้องแชท (HTML)
+# class PostChatView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
+#     model = Post
+#     template_name = 'core/post_chat.html'
+#     context_object_name = 'post'
+
+#     def test_func(self):
+#         # อนุญาตเฉพาะเจ้าของโพสต์ หรือ สมาชิกที่ได้รับการอนุมัติ
+#         post = self.get_object()
+#         return self.request.user == post.owner or self.request.user in post.members.all()
+    
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         # ส่งฟอร์มเปล่าไปให้หน้าเว็บ
+#         context['chat_form'] = ChatMessageForm() 
+#         return context
+
+# # 2. API สำหรับดึงข้อความ (JSON)
+# @login_required
+# def get_chat_messages(request, pk):
+#     post = get_object_or_404(Post, pk=pk)
+    
+#     # เช็คสิทธิ์ความปลอดภัย
+#     if request.user != post.owner and request.user not in post.members.all():
+#         return JsonResponse({'error': 'Permission denied'}, status=403)
+    
+#     # ดึงข้อความทั้งหมด เรียงตามเวลา
+#     messages = ChatMessage.objects.filter(post=post).order_by('timestamp')
+    
+#     data = []
+#     for msg in messages:
+#         data.append({
+#             'user': msg.user.username,
+#             'profile_url': msg.user.profile_picture.url,
+#             'message': msg.message,
+#             'timestamp': msg.timestamp.strftime('%H:%M'),
+#             'is_me': msg.user == request.user # ตัวบอกว่าเป็นข้อความของเราหรือไม่
+#         })
+    
+#     return JsonResponse({'messages': data})
+
+# # 3. API สำหรับส่งข้อความ (Save)
+# @login_required
+# @require_POST
+# def send_chat_message(request, pk):
+#     post = get_object_or_404(Post, pk=pk)
+    
+#     # เช็คสิทธิ์
+#     if request.user != post.owner and request.user not in post.members.all():
+#         return JsonResponse({'error': 'Permission denied'}, status=403)
+    
+#     form = ChatMessageForm(request.POST)
+#     if form.is_valid():
+#         msg = form.save(commit=False)
+#         msg.post = post
+#         msg.user = request.user
+#         msg.save()
+#         return JsonResponse({'status': 'success', 'message': 'Message sent'})
+    
+#     return JsonResponse({'status': 'error', 'errors': form.errors}, status=400)
 
 # ========== ส่วนโปรไฟล์ผู้ใช้ ==========
 

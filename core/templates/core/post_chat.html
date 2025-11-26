@@ -2,49 +2,34 @@
 {% load crispy_forms_tags %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto">
-    <div class="bg-white rounded-lg shadow-md">
-        <div class="p-4 border-b">
-            <h1 class="text-2xl font-bold text-gray-800">แชทสำหรับ: {{ post.title }}</h1>
-            <p class="text-sm text-gray-500">
-                สมาชิก: {{ post.owner.username }}{% for member in post.members.all %}, {{ member.username }}{% endfor %}
-            </p>
+<div class="max-w-4xl mx-auto px-4 py-6">
+    <div class="bg-white rounded-lg shadow-md h-[80vh] flex flex-col border border-gray-200">
+        
+        <div class="p-4 border-b bg-gradient-to-r from-blue-500 to-cyan-500 rounded-t-lg flex justify-between items-center text-white">
+            <div>
+                <h1 class="text-xl font-bold">💬 {{ post.title }}</h1>
+                <p class="text-xs opacity-90">สมาชิก: {{ post.members.count|add:"1" }} คน</p>
+            </div>
+            <a href="{% url 'post-detail' post.pk %}" class="text-sm bg-white/20 hover:bg-white/30 px-3 py-1 rounded-full transition">
+                &larr; กลับ
+            </a>
         </div>
 
-        <div id="chat-messages" class="p-6 h-96 overflow-y-auto flex flex-col space-y-4">
-            {% for msg in chat_messages %}
-                {% if msg.user == user %}
-                    <div class="flex justify-end">
-                        <div class="bg-indigo-500 text-white p-3 rounded-lg max-w-xs">
-                            <p>{{ msg.message }}</p>
-                            <span class="text-xs text-indigo-200 block text-right mt-1">{{ msg.timestamp|time:"H:i" }}</span>
-                        </div>
-                    </div>
-                {% else %}
-                    <div class="flex justify-start">
-                        <img class="h-8 w-8 rounded-full mr-2" src="{{ msg.user.profile_picture.url }}" alt="{{ msg.user.username }}">
-                        <div>
-                            <div class="bg-gray-200 text-gray-800 p-3 rounded-lg max-w-xs">
-                                <p class="font-semibold text-sm">{{ msg.user.username }}</p>
-                                <p>{{ msg.message }}</p>
-                                <span class="text-xs text-gray-500 block text-right mt-1">{{ msg.timestamp|time:"H:i" }}</span>
-                            </div>
-                        </div>
-                    </div>
-                {% endif %}
-            {% empty %}
-                <p class="text-gray-400 text-center">ยังไม่มีข้อความ เริ่มการสนทนาได้เลย!</p>
-            {% endfor %}
+        <div id="chat-container" class="flex-1 p-6 overflow-y-auto flex flex-col space-y-3 bg-gray-50">
+            <p class="text-center text-gray-400 mt-10 animate-pulse">กำลังโหลดข้อความ...</p>
         </div>
 
-        <div class="p-4 border-t">
-            <form method="post" class="flex items-center space-x-2">
+        <div class="p-4 border-t bg-white rounded-b-lg">
+            <form id="chat-form" class="flex items-center space-x-2">
                 {% csrf_token %}
-                <div class="flex-grow">
-                    {{ chat_form|crispy }}
-                </div>
-                <button type="submit" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700">
-                    ส่ง
+                <input type="text" name="message" id="message-input" required autocomplete="off"
+                       class="flex-grow border border-gray-300 rounded-full px-5 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
+                       placeholder="พิมพ์ข้อความ...">
+                
+                <button type="submit" class="bg-blue-600 text-white font-bold p-3 rounded-full hover:bg-blue-700 transition duration-200 shadow-md flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+                        <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
+                    </svg>
                 </button>
             </form>
         </div>
@@ -52,8 +37,109 @@
 </div>
 
 <script>
-    // Auto-scroll to the bottom of the chat
-    const messagesContainer = document.getElementById('chat-messages');
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    const postId = {{ post.pk }};
+    const chatContainer = document.getElementById('chat-container');
+    const chatForm = document.getElementById('chat-form');
+    const messageInput = document.getElementById('message-input');
+    
+    let isFirstLoad = true;
+    let lastMessageCount = 0;
+
+    // 1. ฟังก์ชันดึงข้อความ (GET)
+    function fetchMessages() {
+        fetch(`/post/${postId}/chat/api/get/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.messages) {
+                    renderMessages(data.messages);
+                }
+            })
+            .catch(err => console.error('Error fetching messages:', err));
+    }
+
+    // 2. ฟังก์ชันวาดหน้าจอ
+    function renderMessages(messages) {
+        // ถ้าจำนวนข้อความเท่าเดิม ไม่ต้องวาดใหม่ (ลดการกระพริบ)
+        if (messages.length === lastMessageCount && !isFirstLoad) return;
+        
+        lastMessageCount = messages.length;
+
+        // ลบข้อความ loading ออกถ้ามี
+        const loadingText = document.querySelector('.animate-pulse');
+        if (loadingText) loadingText.remove();
+        
+        if (messages.length === 0) {
+            chatContainer.innerHTML = '<p class="text-center text-gray-400 mt-10">เริ่มการสนทนาได้เลย!</p>';
+            return;
+        }
+
+        let html = '';
+        messages.forEach(msg => {
+            if (msg.is_me) {
+                // ข้อความเรา (ขวา)
+                html += `
+                    <div class="flex justify-end mb-2">
+                        <div class="bg-blue-600 text-white px-4 py-2 rounded-2xl rounded-tr-none max-w-[75%] shadow-sm">
+                            <p class="text-sm">${msg.message}</p>
+                            <p class="text-[10px] text-blue-100 text-right mt-1">${msg.timestamp}</p>
+                        </div>
+                    </div>`;
+            } else {
+                // ข้อความคนอื่น (ซ้าย)
+                html += `
+                    <div class="flex justify-start items-end space-x-2 mb-2">
+                        <img class="h-8 w-8 rounded-full object-cover border border-gray-300 shadow-sm" src="${msg.profile_url}" alt="${msg.user}">
+                        <div>
+                            <p class="text-[10px] text-gray-500 ml-2 mb-0.5">${msg.user}</p>
+                            <div class="bg-white text-gray-800 px-4 py-2 rounded-2xl rounded-tl-none max-w-xs shadow-sm border border-gray-100">
+                                <p class="text-sm">${msg.message}</p>
+                                <p class="text-[10px] text-gray-400 text-right mt-1">${msg.timestamp}</p>
+                            </div>
+                        </div>
+                    </div>`;
+            }
+        });
+
+        chatContainer.innerHTML = html;
+
+        // เลื่อนลงล่างสุดเฉพาะตอนโหลดครั้งแรก
+        if (isFirstLoad) {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            isFirstLoad = false;
+        }
+    }
+
+    // 3. ฟังก์ชันส่งข้อความ (POST)
+    chatForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const message = messageInput.value.trim();
+        if (!message) return;
+
+        const formData = new FormData(chatForm);
+
+        fetch(`/post/${postId}/chat/api/send/`, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                messageInput.value = ''; // เคลียร์ช่องพิมพ์
+                fetchMessages(); // ดึงข้อความใหม่ทันที (ไม่ต้องรอ 2 วิ)
+                setTimeout(() => {
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                }, 100);
+            }
+        })
+        .catch(err => console.error('Error sending message:', err));
+    });
+
+    // --- เริ่มทำงาน ---
+    fetchMessages(); // ครั้งแรก
+    setInterval(fetchMessages, 2000); // วนลูปทุก 2 วินาที (Polling)
+
 </script>
 {% endblock %}

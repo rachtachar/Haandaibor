@@ -51,7 +51,6 @@ INSTALLED_APPS = [
     'crispy_tailwind',
     'theme',
     
-
     'core',
 ]
 
@@ -170,12 +169,9 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
-        # For each OAuth based provider, either add a ``SocialApp``
-        # (``socialaccount`` app) containing the required client
-        # credentials, or list them here:
-        'google': {
+        'APP': {
             'client_id': '940563183804-53ckcqld1qjltadhg52l4a2gbeevqki1.apps.googleusercontent.com',
-            'secret': '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',
+            'secret': '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',
             'key': ''
         }
     }
@@ -193,4 +189,4 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
 # ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 
-
+NPM_BIN_PATH = "C:/Program Files/nodejs/npm.cmd"
