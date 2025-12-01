@@ -88,3 +88,33 @@ class ProfileComment(models.Model):
 
     def __str__(self):
         return f'Comment by {self.author.username} on {self.profile_owner.username}\'s profile'
+    
+
+class Report(models.Model):
+    evidence_image = models.ImageField(upload_to='report_evidence/', blank=True, null=True, verbose_name='หลักฐานประกอบ (รูปภาพ)')
+    resolution_note = models.TextField(verbose_name='รายละเอียดการแก้ไข', blank=True, null=True)
+    CATEGORY_CHOICES = [
+        ('BUG', 'แจ้งปัญหาการใช้งาน/บั๊ก'),
+        ('USER', 'รายงานพฤติกรรมผู้ใช้'),
+        ('SCAM', 'แจ้งเบาะแสการโกง'),
+        ('OTHER', 'ข้อเสนอแนะ/อื่นๆ'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('PENDING', 'รอตรวจสอบ'),
+        ('ACKNOWLEDGED', 'รับเรื่องแล้ว'),
+        ('RESOLVED', 'ดำเนินการแก้ไขแล้ว'),
+        ('REJECTED', 'ปฏิเสธ/ไม่พบปัญหา'),
+    ]
+
+    reporter = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reports_submitted')
+    title = models.CharField(max_length=200, verbose_name='หัวข้อเรื่อง')
+    description = models.TextField(verbose_name='รายละเอียด')
+    category = models.CharField(max_length=10, choices=CATEGORY_CHOICES, verbose_name='หมวดหมู่')
+    
+    # สำหรับ Admin ใช้จัดการสถานะ
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING', verbose_name='สถานะ')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"[{self.get_status_display()}] {self.title} - โดย {self.reporter.username}"

@@ -1,0 +1,160 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+<div class="min-h-screen bg-sky-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto">
+        
+        <div class="mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 class="text-3xl font-extrabold text-sky-900 flex items-center">
+                    🛡️ จัดการเรื่องร้องเรียน
+                </h1>
+                <p class="mt-2 text-sky-600">ตรวจสอบและจัดการปัญหาที่ผู้ใช้แจ้งเข้ามา</p>
+            </div>
+            
+            <div class="flex gap-3">
+                <div class="bg-white px-4 py-2 rounded-lg shadow-sm border border-yellow-200 text-sm">
+                    <span class="block text-yellow-600 font-bold text-xs uppercase">รอตรวจสอบ</span>
+                    <span class="text-xl font-bold text-gray-800">
+                        {{ pending_count }}
+                    </span>
+                </div>
+                <div class="bg-white px-4 py-2 rounded-lg shadow-sm border border-green-200 text-sm">
+                    <span class="block text-green-600 font-bold text-xs uppercase">แก้ไขแล้ว</span>
+                    <span class="text-xl font-bold text-gray-800">
+                        {{ resolved_count }}
+                    </span>
+                </div>
+                <div class="bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-200 text-sm">
+                    <span class="block text-red-500 font-bold text-xs uppercase">ปฏิเสธ</span>
+                    <span class="text-xl font-bold text-gray-800">
+                        {{ rejected_count }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white shadow-xl shadow-sky-100/50 rounded-2xl overflow-hidden border border-sky-100">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-sky-50">
+                        <tr>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-sky-800 uppercase tracking-wider">สถานะ</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-sky-800 uppercase tracking-wider">หัวข้อ / รายละเอียด</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-sky-800 uppercase tracking-wider">ผู้แจ้ง</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-sky-800 uppercase tracking-wider">หมวดหมู่</th>
+                            <th class="px-6 py-4 text-right text-xs font-bold text-sky-800 uppercase tracking-wider">จัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-100">
+                        {% for report in reports %}
+                        <tr class="hover:bg-sky-50/40 transition-colors group">
+                            
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if report.status == 'PENDING' %}
+                                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-yellow-100 text-yellow-800 border border-yellow-200">
+                                        ⏳ รอตรวจสอบ
+                                    </span>
+                                {% elif report.status == 'ACKNOWLEDGED' %}
+                                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-blue-100 text-blue-800 border border-blue-200">
+                                        👀 รับเรื่องแล้ว
+                                    </span>
+                                {% elif report.status == 'RESOLVED' %}
+                                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-green-100 text-green-800 border border-green-200">
+                                        ✅ แก้ไขแล้ว
+                                    </span>
+                                {% elif report.status == 'REJECTED' %}
+                                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-gray-100 text-gray-600 border border-gray-200">
+                                        ❌ ปฏิเสธ
+                                    </span>
+                                {% endif %}
+                            </td>
+
+                            <td class="px-6 py-4">
+                                <div class="text-sm font-bold text-gray-900 mb-1">{{ report.title }}</div>
+                                <div class="text-sm text-gray-500 line-clamp-2 max-w-xs group-hover:line-clamp-none transition-all">
+                                    {{ report.description }}
+                                </div>
+
+                                {% if report.evidence_image %}
+                                    <div class="mt-2">
+                                        <a href="{{ report.evidence_image.url }}" target="_blank" class="inline-flex items-center text-xs font-medium text-sky-600 bg-sky-50 px-2 py-1 rounded border border-sky-200 hover:bg-sky-100 transition-colors">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                            ดูหลักฐาน
+                                        </a>
+                                    </div>
+                                {% endif %}
+                                <div class="text-xs text-gray-400 mt-2">
+                                    {{ report.created_at|date:"d M Y H:i" }}
+                                </div>
+                            </td>
+
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <img class="h-8 w-8 rounded-full object-cover border border-gray-200" src="{{ report.reporter.profile_picture.url }}" alt="">
+                                    <div class="ml-3">
+                                        <div class="text-sm font-medium text-gray-900">{{ report.reporter.username }}</div>
+                                        <div class="text-xs text-gray-500">{{ report.reporter.email }}</div>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="text-sm text-gray-600 bg-gray-100 px-2 py-1 rounded border border-gray-200">
+                                    {{ report.get_category_display }}
+                                </span>
+                            </td>
+
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <div class="flex justify-end gap-2">
+                                    {% if report.status != 'RESOLVED' and report.status != 'REJECTED' %}
+                                        {% if report.status == 'PENDING' %}
+                                        <a href="{% url 'admin-update-report' report.pk 'ACKNOWLEDGED' %}" class="text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 p-2 rounded-lg border border-blue-200 transition-colors" title="กดรับเรื่อง">
+                                            👀 รับเรื่อง
+                                        </a>
+                                        {% endif %}
+
+                                        <a href="{% url 'admin-resolve-report' report.pk %}" class="text-green-600 hover:text-green-900 bg-green-50 hover:bg-green-100 p-2 rounded-lg border border-green-200 transition-colors" title="บันทึกผลและจบงาน">
+                                            ✅ จบงาน
+                                        </a>
+
+                                        <a href="{% url 'admin-update-report' report.pk 'REJECTED' %}" class="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 p-2 rounded-lg border border-red-200 transition-colors" title="ปฏิเสธ/ไม่พบปัญหา" onclick="return confirm('ยืนยันที่จะปฏิเสธการแจ้งนี้?')">
+                                            ❌
+                                        </a>
+                                    {% else %}
+                                        <span class="text-gray-400 text-xs italic">ดำเนินการแล้ว</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="px-6 py-10 text-center text-gray-500">
+                                <p class="text-lg">✨ ไม่มีเรื่องร้องเรียนใหม่</p>
+                                <p class="text-sm text-gray-400">ระบบทำงานปกติดีเยี่ยม!</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            {% if is_paginated %}
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-between items-center">
+                <span class="text-sm text-gray-600">หน้า {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+                <div class="flex space-x-2">
+                    {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}" class="px-4 py-2 border border-sky-200 rounded-md text-sm text-sky-700 bg-white hover:bg-sky-50">ก่อนหน้า</a>
+                    {% endif %}
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}" class="px-4 py-2 border border-sky-200 rounded-md text-sm text-sky-700 bg-white hover:bg-sky-50">ถัดไป</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

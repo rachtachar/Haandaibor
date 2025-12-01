@@ -1,0 +1,18 @@
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Subject: [example.com] Please Confirm Your Email Address
+From: webmaster@localhost
+To: test4@gmail.com
+Date: Wed, 26 Nov 2025 16:31:15 -0000
+Message-ID: <176417467522.34228.11124436412716814854@LegionX.lan>
+
+Hello from example.com!
+
+You're receiving this email because user test4 has given your email address to register an account on example.com.
+
+To confirm this is correct, go to http://busy-cricket-slowly.ngrok-free.app/accounts/confirm-email/MTM:1vOIQF:AB5G8a3WmS4kmCe74f-KAzl7cWqN7Nfxg40V-OWZK8s/
+
+Thank you for using example.com!
+example.com
+-------------------------------------------------------------------------------

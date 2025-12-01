@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-a9b)wq_#+$-ow&_%dvl&$ax1d383k0)-(2y8m38+den1n@e$)m
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['busy-cricket-slowly.ngrok-free.app', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['busy-cricket-slowly.ngrok-free.app', 'localhost', '127.0.0.1',"busy-cricket-slowly.ngrok-free.app"]
 CSRF_TRUSTED_ORIGINS = ['https://*.ngrok-free.app']
 
 
@@ -185,8 +185,19 @@ if DEBUG:
 
 TAILWIND_APP_NAME = "theme"
 ACCOUNT_EMAIL_REQUIRED = True
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+EMAIL_FILE_PATH = BASE_DIR / 'sent_emails'  # Emails will be saved here
 # ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
 # ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 
 NPM_BIN_PATH = "C:/Program Files/nodejs/npm.cmd"
+
+# === การตั้งค่าสำหรับ Ngrok และ HTTPS ===
+# 1. บังคับให้ Allauth สร้างลิงก์เป็น https เสมอ
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = "https"
+
+# 2. บอก Django ว่าถ้าเจอ Header นี้ (จาก ngrok) ให้ถือว่าเป็น HTTPS
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# 3. (เผื่อไว้) ป้องกัน CSRF Error เวลาใช้ https
+CSRF_TRUSTED_ORIGINS = ['https://busy-cricket-slowly.ngrok-free.app']

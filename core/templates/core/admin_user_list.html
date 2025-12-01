@@ -1,0 +1,104 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+<div class="min-h-screen bg-sky-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-6xl mx-auto">
+        
+        <div class="mb-8 flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-extrabold text-sky-900">👥 ระบบจัดการผู้ใช้</h1>
+                <p class="mt-2 text-sky-600">จัดการสถานะสมาชิกในระบบทั้งหมด</p>
+            </div>
+            <div class="bg-white px-4 py-2 rounded-lg shadow-sm text-sm text-gray-500 border border-sky-100">
+                ผู้ใช้ทั้งหมด: <span class="font-bold text-sky-600">{{ users.count }}</span> คน
+            </div>
+        </div>
+
+        <div class="bg-white shadow-lg rounded-2xl overflow-hidden border border-sky-100">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-sky-100/50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-sky-800 uppercase tracking-wider">ผู้ใช้</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-sky-800 uppercase tracking-wider">อีเมล / เบอร์โทร</th>
+                            <th scope="col" class="px-6 py-3 text-center text-xs font-bold text-sky-800 uppercase tracking-wider">สถานะ</th>
+                            <th scope="col" class="px-6 py-3 text-center text-xs font-bold text-sky-800 uppercase tracking-wider">วันที่สมัคร</th>
+                            <th scope="col" class="px-6 py-3 text-center text-xs font-bold text-sky-800 uppercase tracking-wider">จัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for u in users %}
+                        <tr class="hover:bg-sky-50/30 transition-colors">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10">
+                                        <img class="h-10 w-10 rounded-full object-cover border border-gray-200" src="{{ u.profile_picture.url }}" alt="">
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">
+                                            {{ u.username }}
+                                            {% if u.is_superuser %}
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">Admin</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">{{ u.email }}</div>
+                                <div class="text-sm text-gray-500">{{ u.phone_number|default:"-" }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                                {% if u.is_active %}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                        ปกติ
+                                    </span>
+                                {% else %}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                        ถูกแบน
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
+                                {{ u.date_joined|date:"d M Y" }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                                {% if not u.is_superuser %}
+                                    {% if u.is_active %}
+                                        <a href="{% url 'admin-ban-user' u.pk %}" onclick="return confirm('ยืนยันที่จะแบนผู้ใช้ {{ u.username }}?');" class="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 px-3 py-1 rounded-md transition-colors border border-red-200">
+                                            🚫 แบน
+                                        </a>
+                                    {% else %}
+                                        <a href="{% url 'admin-unban-user' u.pk %}" onclick="return confirm('ยืนยันที่จะปลดแบนผู้ใช้ {{ u.username }}?');" class="text-green-600 hover:text-green-900 bg-green-50 hover:bg-green-100 px-3 py-1 rounded-md transition-colors border border-green-200">
+                                            ✅ ปลดแบน
+                                        </a>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-gray-400 cursor-not-allowed">ห้ามแก้ไข</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            {% if is_paginated %}
+            <div class="px-6 py-3 bg-gray-50 border-t border-gray-200 flex justify-between items-center">
+                <span class="text-sm text-gray-700">
+                    หน้า {{ page_obj.number }} จาก {{ page_obj.paginator.num_pages }}
+                </span>
+                <div class="flex space-x-2">
+                    {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-1 border border-gray-300 rounded-md text-sm hover:bg-white">ก่อนหน้า</a>
+                    {% endif %}
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-1 border border-gray-300 rounded-md text-sm hover:bg-white">ถัดไป</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

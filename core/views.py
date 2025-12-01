@@ -13,6 +13,8 @@ from django.http import HttpResponseForbidden
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.contrib import messages
+from .models import Report
+from .forms import ReportForm, ResolveReportForm
 
 
 # ========== ส่วนจัดการโพสต์ (CRUD) ==========
@@ -334,3 +336,120 @@ def add_profile_comment(request, pk):
 #     # ที่นี่คุณสามารถเพิ่ม logic การ login ได้
 #     # เช่น การตรวจสอบ POST request และยืนยันตัวตนผู้ใช้
 #     return render(request, 'users/login.html')
+
+# 1. View สำหรับแสดงรายชื่อผู้ใช้ทั้งหมด (เฉพาะ Admin เท่านั้น)
+class AdminUserListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
+    model = User
+    template_name = 'core/admin_user_list.html'
+    context_object_name = 'users'
+    ordering = ['-date_joined']
+    paginate_by = 20  # แบ่งหน้าถ้าผู้ใช้เยอะ
+
+    def test_func(self):
+        # อนุญาตเฉพาะ Superuser หรือ Staff เท่านั้น
+        return self.request.user.is_superuser or self.request.user.is_staff
+
+# 2. ฟังก์ชันแบนผู้ใช้
+@login_required
+def admin_ban_user(request, pk):
+    if not (request.user.is_superuser or request.user.is_staff):
+        return HttpResponseForbidden()
+    
+    user_to_ban = get_object_or_404(User, pk=pk)
+    if user_to_ban.is_superuser:
+        messages.error(request, "ไม่สามารถแบน Superuser ได้!")
+    else:
+        user_to_ban.is_active = False
+        user_to_ban.save()
+        messages.success(request, f"แบนผู้ใช้ {user_to_ban.username} แล้ว")
+    
+    return redirect('admin-user-list')
+
+# 3. ฟังก์ชันปลดแบน
+@login_required
+def admin_unban_user(request, pk):
+    if not (request.user.is_superuser or request.user.is_staff):
+        return HttpResponseForbidden()
+    
+    user_to_unban = get_object_or_404(User, pk=pk)
+    user_to_unban.is_active = True
+    user_to_unban.save()
+    messages.success(request, f"ปลดแบนผู้ใช้ {user_to_unban.username} แล้ว")
+    
+    return redirect('admin-user-list')
+
+# ========== ส่วนรายงานปัญหา ==========
+class ReportCreateView(LoginRequiredMixin, CreateView):
+    model = Report
+    form_class = ReportForm
+    template_name = 'core/report_form.html'
+    success_url = reverse_lazy('home') # ส่งเสร็จกลับหน้าแรก
+
+    def form_valid(self, form):
+        # บันทึกว่าใครเป็นคนแจ้ง (ดึงจาก user ที่ login อยู่)
+        form.instance.reporter = self.request.user
+        messages.success(self.request, "ขอบคุณสำหรับการแจ้งปัญหา ทีมงานจะตรวจสอบโดยเร็วที่สุด")
+        return super().form_valid(form)
+    
+class UserReportListView(LoginRequiredMixin, ListView):
+    model = Report
+    template_name = 'core/user_report_list.html'
+    context_object_name = 'reports'
+    paginate_by = 10
+
+    def get_queryset(self):
+        # ดึงเฉพาะรายการที่ "ผู้ใช้ที่ล็อกอินอยู่" เป็นคนแจ้งเท่านั้น
+        return Report.objects.filter(reporter=self.request.user).order_by('-created_at')
+    
+
+# 1. View สำหรับแสดงรายการแจ้งปัญหาทั้งหมด (เฉพาะ Admin)
+class AdminReportListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
+    model = Report
+    template_name = 'core/admin_report_list.html'
+    context_object_name = 'reports'
+    ordering = ['-created_at'] # ใหม่สุดขึ้นก่อน
+    paginate_by = 10
+
+    def test_func(self):
+        return self.request.user.is_superuser or self.request.user.is_staff
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # นับจำนวนงานแต่ละสถานะส่งไปที่ Template
+        context['pending_count'] = Report.objects.filter(status='PENDING').count()
+        context['resolved_count'] = Report.objects.filter(status='RESOLVED').count()
+        context['rejected_count'] = Report.objects.filter(status='REJECTED').count()
+        return context
+
+# 2. ฟังก์ชันอัปเดตสถานะงาน
+@login_required
+def admin_update_report_status(request, pk, status):
+    if not (request.user.is_superuser or request.user.is_staff):
+        return HttpResponseForbidden()
+    
+    report = get_object_or_404(Report, pk=pk)
+    
+    # ตรวจสอบว่าค่า status ที่ส่งมาถูกต้องไหม
+    valid_statuses = dict(Report.STATUS_CHOICES).keys()
+    if status in valid_statuses:
+        report.status = status
+        report.save()
+        messages.success(request, f"อัปเดตสถานะเรื่อง '{report.title}' เรียบร้อยแล้ว")
+    else:
+        messages.error(request, "สถานะไม่ถูกต้อง")
+    
+    return redirect('admin-report-list')
+
+class AdminResolveReportView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Report
+    form_class = ResolveReportForm
+    template_name = 'core/admin_resolve_report.html'
+    success_url = reverse_lazy('admin-report-list')
+
+    def test_func(self):
+        return self.request.user.is_superuser or self.request.user.is_staff
+
+    def form_valid(self, form):
+        # เมื่อบันทึกฟอร์ม จะเปลี่ยนสถานะเป็น RESOLVED ทันที
+        form.instance.status = 'RESOLVED'
+        messages.success(self.request, f"ปิดงาน '{form.instance.title}' เรียบร้อยแล้ว")
+        return super().form_valid(form)

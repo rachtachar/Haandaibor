@@ -16,6 +16,15 @@ from .views import (
     send_chat_message,
     kick_member,
     HomepageView,
+    AdminUserListView,
+    admin_ban_user,
+    admin_unban_user,
+    ReportCreateView,
+    AdminReportListView,
+    admin_update_report_status,
+    UserReportListView,
+    AdminResolveReportView,
+
 )
 
 urlpatterns = [
@@ -52,4 +61,18 @@ urlpatterns = [
 
     # URL สำหรับเตะสมาชิก
     path('post/<int:pk>/kick/<int:user_id>/', kick_member, name='kick-member'),
+
+    # URL สำหรับระบบ Admin แบบ Custom
+    path('system/users/', AdminUserListView.as_view(), name='admin-user-list'),
+    path('system/users/<int:pk>/ban/', admin_ban_user, name='admin-ban-user'),
+    path('system/users/<int:pk>/unban/', admin_unban_user, name='admin-unban-user'),
+
+    # URL สำหรับดูประวัติการแจ้งปัญหาของผู้ใช้เอง
+    path('report/', ReportCreateView.as_view(), name='report-create'),
+    path('my-reports/', UserReportListView.as_view(), name='user-report-list'),
+
+    # URL สำหรับระบบ Admin ดูรายงานปัญหาทั้งหมด
+    path('system/reports/', AdminReportListView.as_view(), name='admin-report-list'),
+    path('system/reports/<int:pk>/update/<str:status>/', admin_update_report_status, name='admin-update-report'),
+    path('system/reports/<int:pk>/resolve/', AdminResolveReportView.as_view(), name='admin-resolve-report'),
 ]
