@@ -11,14 +11,22 @@ class PostForm(forms.ModelForm):
 
 
 class ChatMessageForm(forms.ModelForm):
-    # ใช้ widget TextInput เพื่อให้ช่องกรอกข้อมูลเป็นแถวเดียว และเพิ่ม placeholder
     message = forms.CharField(
         widget=forms.TextInput(attrs={'placeholder': 'พิมพ์ข้อความ...', 'class': 'w-full rounded-md border-gray-300'}),
-        label="" # ไม่ต้องแสดง Label
+        label="",
+        required=False # ไม่บังคับกรอก เพราะอาจจะส่งแค่รูปอย่างเดียว
     )
+    
+    # ★ เพิ่ม Widget สำหรับอัปโหลดรูป (ซ่อนไว้ก่อน แล้วใช้ปุ่มกดเรียก) ★
+    image = forms.ImageField(
+        widget=forms.FileInput(attrs={'class': 'hidden', 'id': 'chat-image-input'}),
+        label="",
+        required=False
+    )
+
     class Meta:
         model = ChatMessage
-        fields = ['message']
+        fields = ['message', 'image'] # เพิ่ม image เข้าไป
 
 class ProfileCommentForm(forms.ModelForm):
     comment = forms.CharField(

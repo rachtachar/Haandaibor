@@ -24,6 +24,8 @@ from .views import (
     admin_update_report_status,
     UserReportListView,
     AdminResolveReportView,
+    ReportDetailView,
+    generate_promptpay_qr,
 
 )
 
@@ -75,4 +77,8 @@ urlpatterns = [
     path('system/reports/', AdminReportListView.as_view(), name='admin-report-list'),
     path('system/reports/<int:pk>/update/<str:status>/', admin_update_report_status, name='admin-update-report'),
     path('system/reports/<int:pk>/resolve/', AdminResolveReportView.as_view(), name='admin-resolve-report'),
+    path('report/<int:pk>/', ReportDetailView.as_view(), name='report-detail'),
+    
+    # URL สำหรับ Generate QR Code PromptPay
+    path('api/generate-qr/', generate_promptpay_qr, name='generate-qr'),
 ]

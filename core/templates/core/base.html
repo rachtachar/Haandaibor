@@ -1,97 +1,165 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HaanDaiBor</title>
+    <title>HaanDaibor</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Prompt', sans-serif;
         }
+
+        /* เพิ่ม Transition ให้ Dropdown นุ่มนวล */
+        .group:hover .group-hover\:block {
+            display: block;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
     </style>
 </head>
+
 <body class="bg-sky-50 text-gray-800">
     <nav class="bg-white/90 backdrop-blur-md shadow-sm border-b border-sky-100 sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 ">
                 <div class="flex">
                     <div class="flex-shrink-0 flex items-center">
-                        <a href="{% url 'home' %}" class="font-bold text-2xl text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 transition-all">
-                            HaanDaiBor
+                        <a href="{% url 'home' %}"
+                            class="font-bold text-2xl text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 transition-all">
+                            HaanDaibor
                         </a>
                     </div>
                 </div>
                 <div class="flex items-center space-x-1 md:space-x-4">
-                    {% if user.is_superuser %}
-                        <a href="{% url 'admin-user-list' %}" class="flex items-center px-3 py-2 rounded-lg text-sm font-bold text-white bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 shadow-md hover:shadow-indigo-200 transition-all transform hover:-translate-y-0.5">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                            จัดการผู้ใช้ (Dashboard)
-                        </a>
-                        <div class="h-6 w-px bg-gray-200 mx-2"></div>
-                        <a href="{% url 'admin-report-list' %}" class="flex items-center px-3 py-2 rounded-lg text-sm font-bold text-white bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 shadow-md hover:shadow-rose-200 transition-all transform hover:-translate-y-0.5">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            ตรวจเรื่องร้องเรียน
-                        </a>
-                        <div class="h-6 w-px bg-gray-200 mx-2"></div>
-                    {% endif %}
                     {% if user.is_authenticated %}
-                        <a href="{% url 'post-list' %}" class="text-gray-600 hover:text-sky-600 hover:bg-sky-50 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
-                            ดูปาร์ตี้
-                        </a>
-                        <a href="{% url 'post-create' %}" class="text-gray-600 hover:text-sky-600 hover:bg-sky-50 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
-                            สร้างปาร์ตี้
-                        </a>
-                        <a href="{% url 'profile' user.pk %}" class="text-gray-600 hover:text-sky-600 hover:bg-sky-50 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
-                            โปรไฟล์ของฉัน
-                        </a>
-                        <a href="{% url 'report-create' %}" class="text-gray-600 hover:text-red-500 hover:bg-red-50 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
-                            แจ้งปัญหา
-                        </a>
-                        <form method="post" action="{% url 'account_logout' %}">
-                            {% csrf_token %}
-                            <button type="submit" class="text-gray-500 hover:text-red-500 hover:bg-red-50 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
-                                ออกจากระบบ
-                            </button>
-                        </form>
-                    {% else %}
-                        <a href="{% url 'account_login' %}" class="ml-2 inline-flex items-center px-4 py-2 border border-sky-200 text-sm font-medium rounded-full text-sky-600 bg-white hover:bg-sky-50 hover:border-sky-300 transition-all">
-                            เข้าสู่ระบบ
-                        </a>
-                        <a href="{% url 'account_signup' %}" class="ml-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-full text-white bg-gradient-to-r from-sky-400 to-blue-500 hover:from-sky-500 hover:to-blue-600 shadow-md hover:shadow-lg hover:shadow-sky-200/50 transition-all">
-                            สมัครสมาชิก
-                        </a>
+
+
+                    <a href="{% url 'post-list' %}"
+                        class="text-gray-600 hover:text-sky-600 hover:bg-sky-50 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
+                        ดูโพสต์
+                    </a>
+                    <a href="{% url 'post-create' %}"
+                        class="text-gray-600 hover:text-sky-600 hover:bg-sky-50 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
+                        สร้างโพสต์
+                    </a>
+                    <a href="{% url 'profile' user.pk %}"
+                        class="text-gray-600 hover:text-sky-600 hover:bg-sky-50 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
+                        โปรไฟล์ของฉัน
+                    </a>
+                    {% if user.is_superuser %}
+                    <div class="relative group z-50">
+                        <button
+                            class="flex items-center px-3 py-2 rounded-lg text-sm font-bold text-white bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 shadow-md hover:shadow-indigo-200 transition-all transform hover:-translate-y-0.5">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            Admin Management
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+
+                        <div class="absolute right-0 top-full pt-2 w-56 hidden group-hover:block">
+
+                            <div class="bg-white rounded-xl shadow-xl border border-sky-100 overflow-hidden">
+                                <div class="py-1">
+                                    <a href="{% url 'admin-user-list' %}"
+                                        class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-700 transition-colors">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 text-indigo-500"
+                                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                        </svg>
+                                        จัดการผู้ใช้
+                                    </a>
+                                    <a href="{% url 'admin-report-list' %}"
+                                        class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-700 transition-colors">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 text-pink-500"
+                                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        ตรวจเรื่องร้องเรียน
+                                    </a>
+                                    <div class="border-t border-gray-100 my-1"></div>
+                                    <a href="{% url 'admin:index' %}" target="_blank"
+                                        class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 text-gray-400"
+                                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        </svg>
+                                        Django Admin (ระบบหลังบ้าน)
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="h-6 w-px bg-gray-200 mx-2"></div>
                     {% endif %}
-                    
+                    <form method="post" action="{% url 'account_logout' %}">
+                        {% csrf_token %}
+                        <button type="submit"
+                            class="text-gray-500 hover:text-red-500 hover:bg-red-50 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
+                            ออกจากระบบ
+                        </button>
+                    </form>
+                    {% else %}
+                    <a href="{% url 'account_login' %}"
+                        class="ml-2 inline-flex items-center px-4 py-2 border border-sky-200 text-sm font-medium rounded-full text-sky-600 bg-white hover:bg-sky-50 hover:border-sky-300 transition-all">
+                        เข้าสู่ระบบ
+                    </a>
+                    <a href="{% url 'account_signup' %}"
+                        class="ml-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-full text-white bg-gradient-to-r from-sky-400 to-blue-500 hover:from-sky-500 hover:to-blue-600 shadow-md hover:shadow-lg hover:shadow-sky-200/50 transition-all">
+                        สมัครสมาชิก
+                    </a>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </nav>
 
     <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        
+
         {% if messages %}
-            <div class="mb-6 space-y-2">
-                {% for message in messages %}
-                    <div class="p-4 rounded-lg shadow-sm border 
+        <div class="mb-6 space-y-2">
+            {% for message in messages %}
+            <div class="p-4 rounded-lg shadow-sm border 
                         {% if message.tags == 'error' %} bg-red-50 border-red-200 text-red-700 
                         {% elif message.tags == 'success' %} bg-green-50 border-green-200 text-green-700 
                         {% else %} bg-blue-50 border-blue-200 text-blue-700 {% endif %}">
-                        {{ message }}
-                    </div>
-                {% endfor %}
+                {{ message }}
             </div>
+            {% endfor %}
+        </div>
         {% endif %}
 
         {% block content %}
         {% endblock %}
     </main>
 </body>
+
 </html>

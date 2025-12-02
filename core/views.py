@@ -16,6 +16,11 @@ from django.contrib import messages
 from .models import Report
 from .forms import ReportForm, ResolveReportForm
 
+import io
+import qrcode
+from promptpay import qrcode as promptpay_qrcode # หรือใช้ library promptpay ที่ลง
+from django.http import HttpResponse
+
 
 # ========== ส่วนจัดการโพสต์ (CRUD) ==========
 class HomepageView(ListView):
@@ -155,11 +160,9 @@ class PostChatView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
 def get_chat_messages(request, pk):
     post = get_object_or_404(Post, pk=pk)
     
-    # เช็คสิทธิ์ (Security)
     if request.user != post.owner and request.user not in post.members.all():
         return JsonResponse({'error': 'Permission denied'}, status=403)
     
-    # ดึงข้อความทั้งหมด
     messages = ChatMessage.objects.filter(post=post).order_by('timestamp')
     
     data = []
@@ -168,8 +171,12 @@ def get_chat_messages(request, pk):
             'user': msg.user.username,
             'profile_url': msg.user.profile_picture.url if msg.user.profile_picture else '',
             'message': msg.message,
+            
+            # ★ ส่ง URL รูปภาพไปด้วย (ถ้ามี) ★
+            'image_url': msg.image.url if msg.image else None,
+            
             'timestamp': msg.timestamp.strftime('%H:%M'),
-            'is_me': msg.user == request.user # ตัวบอกฝั่งซ้าย/ขวา
+            'is_me': msg.user == request.user
         })
     
     return JsonResponse({'messages': data})
@@ -180,112 +187,25 @@ def get_chat_messages(request, pk):
 def send_chat_message(request, pk):
     post = get_object_or_404(Post, pk=pk)
     
-    # เช็คสิทธิ์
     if request.user != post.owner and request.user not in post.members.all():
         return JsonResponse({'error': 'Permission denied'}, status=403)
     
-    message_text = request.POST.get('message')
+    # รับข้อมูลทั้งข้อความและไฟล์รูปภาพ
+    message_text = request.POST.get('message', '').strip()
+    image_file = request.FILES.get('image')
     
-    if message_text:
+    # ต้องมีอย่างใดอย่างหนึ่ง (ข้อความ หรือ รูป) ถึงจะบันทึก
+    if message_text or image_file:
         ChatMessage.objects.create(
             post=post,
             user=request.user,
-            message=message_text
+            message=message_text,
+            image=image_file # บันทึกรูปภาพ
         )
         return JsonResponse({'status': 'success'})
     
     return JsonResponse({'status': 'error', 'message': 'Empty message'}, status=400)
 
-# class PostChatView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
-#     model = Post
-#     template_name = 'core/post_chat.html'
-#     context_object_name = 'post'
-
-#     def test_func(self):
-#         # อนุญาตเฉพาะเจ้าของและสมาชิกที่อนุมัติแล้วเท่านั้น
-#         post = self.get_object()
-#         return self.request.user == post.owner or self.request.user in post.members.all()
-
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         context['chat_messages'] = ChatMessage.objects.filter(post=self.object).order_by('timestamp')
-#         context['chat_form'] = ChatMessageForm()
-#         return context
-
-#     def post(self, request, *args, **kwargs):
-#         post = self.get_object()
-#         form = ChatMessageForm(request.POST)
-#         if form.is_valid():
-#             message = form.save(commit=False)
-#             message.post = post
-#             message.user = request.user
-#             message.save()
-#         return redirect('post-chat', pk=post.pk)
-
-
-
-
-#ไว้สำหรรับใช้ Redis 
-# # 1. View สำหรับแสดงหน้าห้องแชท (HTML)
-# class PostChatView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
-#     model = Post
-#     template_name = 'core/post_chat.html'
-#     context_object_name = 'post'
-
-#     def test_func(self):
-#         # อนุญาตเฉพาะเจ้าของโพสต์ หรือ สมาชิกที่ได้รับการอนุมัติ
-#         post = self.get_object()
-#         return self.request.user == post.owner or self.request.user in post.members.all()
-    
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         # ส่งฟอร์มเปล่าไปให้หน้าเว็บ
-#         context['chat_form'] = ChatMessageForm() 
-#         return context
-
-# # 2. API สำหรับดึงข้อความ (JSON)
-# @login_required
-# def get_chat_messages(request, pk):
-#     post = get_object_or_404(Post, pk=pk)
-    
-#     # เช็คสิทธิ์ความปลอดภัย
-#     if request.user != post.owner and request.user not in post.members.all():
-#         return JsonResponse({'error': 'Permission denied'}, status=403)
-    
-#     # ดึงข้อความทั้งหมด เรียงตามเวลา
-#     messages = ChatMessage.objects.filter(post=post).order_by('timestamp')
-    
-#     data = []
-#     for msg in messages:
-#         data.append({
-#             'user': msg.user.username,
-#             'profile_url': msg.user.profile_picture.url,
-#             'message': msg.message,
-#             'timestamp': msg.timestamp.strftime('%H:%M'),
-#             'is_me': msg.user == request.user # ตัวบอกว่าเป็นข้อความของเราหรือไม่
-#         })
-    
-#     return JsonResponse({'messages': data})
-
-# # 3. API สำหรับส่งข้อความ (Save)
-# @login_required
-# @require_POST
-# def send_chat_message(request, pk):
-#     post = get_object_or_404(Post, pk=pk)
-    
-#     # เช็คสิทธิ์
-#     if request.user != post.owner and request.user not in post.members.all():
-#         return JsonResponse({'error': 'Permission denied'}, status=403)
-    
-#     form = ChatMessageForm(request.POST)
-#     if form.is_valid():
-#         msg = form.save(commit=False)
-#         msg.post = post
-#         msg.user = request.user
-#         msg.save()
-#         return JsonResponse({'status': 'success', 'message': 'Message sent'})
-    
-#     return JsonResponse({'status': 'error', 'errors': form.errors}, status=400)
 
 # ========== ส่วนโปรไฟล์ผู้ใช้ ==========
 
@@ -453,3 +373,37 @@ class AdminResolveReportView(LoginRequiredMixin, UserPassesTestMixin, UpdateView
         form.instance.status = 'RESOLVED'
         messages.success(self.request, f"ปิดงาน '{form.instance.title}' เรียบร้อยแล้ว")
         return super().form_valid(form)
+
+class ReportDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
+    model = Report
+    template_name = 'core/report_detail.html'
+    context_object_name = 'report'
+
+    def test_func(self):
+        report = self.get_object()
+        # อนุญาตถ้าเป็น Admin/Staff หรือ เป็นคนแจ้งเรื่องเอง
+        return self.request.user.is_superuser or self.request.user.is_staff or self.request.user == report.reporter
+
+# สร้าง QR Code PromptPay
+@login_required
+def generate_promptpay_qr(request):
+    # รับค่าจาก Parameter
+    pp_id = request.GET.get('id', '')
+    amount = float(request.GET.get('amount', 0.00))
+    
+    if not pp_id:
+        return HttpResponse("Please provide ID", status=400)
+
+    # สร้าง Payload PromptPay (รองรับทั้งเบอร์มือถือและเลขบัตรประชาชน)
+    # Library promptpay จะจัดการแปลง 08x เป็น 668x ให้เอง
+    payload = promptpay_qrcode.generate_payload(pp_id, amount)
+
+    # สร้างรูป QR Code
+    img = qrcode.make(payload)
+    
+    # แปลงรูปเป็น Byte เพื่อส่งกลับไปเป็น Response (ไม่ต้องเซฟลงเครื่อง)
+    buffer = io.BytesIO()
+    img.save(buffer, format="PNG")
+    buffer.seek(0)
+
+    return HttpResponse(buffer, content_type="image/png")
