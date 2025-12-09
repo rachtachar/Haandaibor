@@ -61,6 +61,10 @@
                         class="text-gray-600 hover:text-sky-600 hover:bg-sky-50 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
                         โปรไฟล์ของฉัน
                     </a>
+                    <a href="{% url 'report-create' %}"
+                        class="text-gray-600 hover:text-sky-600 hover:bg-sky-50 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
+                        แจ้งปัญหา
+                    </a>
                     {% if user.is_superuser %}
                     <div class="relative group z-50">
                         <button

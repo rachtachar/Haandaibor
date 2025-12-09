@@ -56,7 +56,9 @@
             <div class="bg-gray-50 p-4 rounded-lg">
                 <dt class="text-sm font-medium text-gray-500">การชำระเงิน</dt>
                 <dd class="mt-1">
-                    {% if post.owner.phone_number and user == post.owner or user in post.members.all %}
+                    {% if user == post.owner or user in post.members.all %}
+
+                    {% if post.owner.phone_number %}
                     <button onclick="openQRModal()"
                         class="inline-flex items-center text-sm font-bold text-sky-600 hover:text-sky-800 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24"
@@ -88,6 +90,10 @@
                         ยังไม่ระบุช่องทางจ่าย
                     </span>
                     {% endif %}
+                    {% endif %}
+
+                    {% else %}
+                    <span class="text-gray-400">สำหรับสมาชิก</span>
                     {% endif %}
                 </dd>
             </div>
