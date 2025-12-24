@@ -3,7 +3,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy, reverse
 from django.views.generic import (
     ListView, DetailView, CreateView,
-    UpdateView, DeleteView
+    UpdateView, DeleteView, TemplateView
 )
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.decorators import login_required
@@ -20,6 +20,7 @@ import io
 import qrcode
 from promptpay import qrcode as promptpay_qrcode # หรือใช้ library promptpay ที่ลง
 from django.http import HttpResponse
+
 
 
 # ========== ส่วนจัดการโพสต์ (CRUD) ==========
@@ -407,3 +408,6 @@ def generate_promptpay_qr(request):
     buffer.seek(0)
 
     return HttpResponse(buffer, content_type="image/png")
+
+class BillCalculatorView(TemplateView):
+    template_name = 'core/bill_calculator.html'

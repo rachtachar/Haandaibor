@@ -1,0 +1,351 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+<div class="min-h-screen bg-sky-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-5xl mx-auto">
+
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-extrabold text-sky-900">🍽️ ระบบหาร By Haandaibor</h1>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <div class="lg:col-span-2 space-y-6">
+                
+                <div class="bg-white rounded-2xl shadow-sm border border-sky-100 p-6">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">1. เพิ่มรายชื่อคน (Members)</h3>
+                    
+                    <div class="flex gap-2 mb-4">
+                        <input type="text" id="new-person-name" placeholder="ชื่อคน (เช่น A, B, C)" 
+                               class="flex-grow p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-300 outline-none"
+                               onkeydown="if(event.key === 'Enter') addPerson()">
+                        <button onclick="addPerson()" class="bg-sky-500 hover:bg-sky-600 text-white px-4 py-2 rounded-lg font-bold transition-colors">
+                            + เพิ่ม
+                        </button>
+                    </div>
+
+                    <div id="people-list" class="flex flex-wrap gap-2">
+                        <span class="text-gray-400 text-sm italic p-2">ยังไม่มีรายชื่อ...</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-sky-100 p-6">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">2. เพิ่มรายการ</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+                        <div class="md:col-span-2">
+                            <label class="text-xs text-gray-500">ชื่อรายการ</label>
+                            <input type="text" id="item-name" placeholder="เช่น ส้มตำ, ไก่ย่าง" 
+                                   class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-300 outline-none">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-500">ราคา</label>
+                            <input type="number" id="item-price" placeholder="0.00" 
+                                   class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-300 outline-none text-right">
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="text-xs text-gray-500 mb-2 block">ใครจ่ายรายการนี้บ้าง? (เลือกคนหาร)</label>
+                        <div id="payer-checkboxes" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                            <span class="text-gray-400 text-xs col-span-full text-center">กรุณาเพิ่มรายชื่อคนในข้อ 1 ก่อน</span>
+                        </div>
+                        <div class="mt-2 flex gap-2">
+                             <button onclick="toggleSelectAll(true)" class="text-xs text-sky-600 hover:underline">เลือกทั้งหมด</button>
+                             <span class="text-gray-300">|</span>
+                             <button onclick="toggleSelectAll(false)" class="text-xs text-sky-600 hover:underline">ไม่เลือกเลย</button>
+                        </div>
+                    </div>
+
+                    <button onclick="addItem()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-md transition-all transform active:scale-95">
+                        ➕ เพิ่มรายการลงบิล
+                    </button>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-sky-100 p-6">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">รายการทั้งหมด</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-2 rounded-l-lg">รายการ</th>
+                                    <th class="px-4 py-2 text-right">ราคา</th>
+                                    <th class="px-4 py-2">คนหาร</th>
+                                    <th class="px-4 py-2 rounded-r-lg text-center">ลบ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="items-table-body">
+                                </tbody>
+                            <tfoot class="font-bold text-gray-900 border-t-2 border-gray-100">
+                                <tr>
+                                    <td class="px-4 py-3">รวมรายการ</td>
+                                    <td class="px-4 py-3 text-right" id="total-food-price">0.00</td>
+                                    <td colspan="2"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="space-y-6">
+                
+                <div class="bg-white rounded-2xl shadow-sm border border-sky-100 p-6">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">ตั้งค่าเพิ่มเติม</h3>
+                    <div class="space-y-3">
+                        <label class="flex items-center justify-between cursor-pointer">
+                            <span class="text-gray-700">Service Charge (10%)</span>
+                            <input type="checkbox" id="svc-check" onchange="calculateTotal()" class="w-5 h-5 text-sky-600 rounded">
+                        </label>
+                        <label class="flex items-center justify-between cursor-pointer">
+                            <span class="text-gray-700">VAT (7%)</span>
+                            <input type="checkbox" id="vat-check" onchange="calculateTotal()" class="w-5 h-5 text-sky-600 rounded" checked>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-sky-600 to-indigo-700 rounded-2xl shadow-xl p-6 text-white sticky top-6">
+                    <h3 class="text-xl font-bold mb-4 border-b border-white/20 pb-2">💰 สรุปยอดที่ต้องจ่าย</h3>
+                    
+                    <div id="summary-container" class="space-y-3">
+                        <div class="text-center text-sky-100 py-4 opacity-70">
+                            ยังไม่มีข้อมูลการคำนวณ
+                        </div>
+                    </div>
+
+                    <div class="mt-6 pt-4 border-t border-white/30">
+                        <div class="flex justify-between items-end">
+                            <span class="text-sky-100">ยอดรวมสุทธิ</span>
+                            <span class="text-3xl font-extrabold text-yellow-300" id="grand-total">0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        
+        <div class="mt-8 text-center">
+            <a href="{% url 'home' %}" class="text-sky-600 hover:text-sky-800 font-medium">← กลับหน้าหลัก</a>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // State เก็บข้อมูล
+    let people = []; // ['Alice', 'Bob']
+    let items = [];  // [{name: 'Pizza', price: 200, payers: ['Alice', 'Bob']}]
+
+    // 1. ฟังก์ชันจัดการคน (People)
+    function addPerson() {
+        const input = document.getElementById('new-person-name');
+        const name = input.value.trim();
+        
+        if (name && !people.includes(name)) {
+            people.push(name);
+            input.value = '';
+            renderPeople();
+            renderPayerCheckboxes(); // อัปเดต checkbox ให้เลือก
+            calculateTotal(); // คำนวณใหม่เผื่อมีผลกระทบ
+        } else if (people.includes(name)) {
+            alert('ชื่อนี้มีอยู่แล้ว');
+        }
+    }
+
+    function removePerson(name) {
+        if(confirm(`ต้องการลบคุณ "${name}" และรายการที่เขาต้องจ่ายทั้งหมดหรือไม่?`)) {
+            people = people.filter(p => p !== name);
+            // ลบชื่อคนนี้ออกจากรายการที่เคยเลือกไว้ด้วย
+            items.forEach(item => {
+                item.payers = item.payers.filter(p => p !== name);
+            });
+            renderPeople();
+            renderPayerCheckboxes();
+            renderItemsTable();
+            calculateTotal();
+        }
+    }
+
+    function renderPeople() {
+        const container = document.getElementById('people-list');
+        if (people.length === 0) {
+            container.innerHTML = '<span class="text-gray-400 text-sm italic p-2">ยังไม่มีรายชื่อ...</span>';
+            return;
+        }
+        
+        let html = '';
+        people.forEach(p => {
+            html += `
+                <div class="flex items-center bg-sky-100 text-sky-800 px-3 py-1 rounded-full text-sm font-bold border border-sky-200">
+                    ${p}
+                    <button onclick="removePerson('${p}')" class="ml-2 text-sky-400 hover:text-red-500 font-normal">×</button>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    function renderPayerCheckboxes() {
+        const container = document.getElementById('payer-checkboxes');
+        if (people.length === 0) {
+            container.innerHTML = '<span class="text-gray-400 text-xs col-span-full text-center">กรุณาเพิ่มรายชื่อคนในข้อ 1 ก่อน</span>';
+            return;
+        }
+
+        let html = '';
+        people.forEach((p, index) => {
+            html += `
+                <label class="flex items-center space-x-2 bg-white p-2 rounded border border-gray-200 cursor-pointer hover:bg-sky-50 transition-colors">
+                    <input type="checkbox" value="${p}" class="payer-checkbox w-4 h-4 text-sky-600 rounded focus:ring-sky-500">
+                    <span class="text-sm text-gray-700 truncate">${p}</span>
+                </label>
+            `;
+        });
+        container.innerHTML = html;
+    }
+    
+    function toggleSelectAll(select) {
+        document.querySelectorAll('.payer-checkbox').forEach(cb => cb.checked = select);
+    }
+
+    // 2. ฟังก์ชันจัดการรายการ (Items)
+    function addItem() {
+        const nameInput = document.getElementById('item-name');
+        const priceInput = document.getElementById('item-price');
+        
+        const name = nameInput.value.trim() || 'รายการไม่ระบุชื่อ';
+        const price = parseFloat(priceInput.value);
+
+        // หาคนจ่ายที่ถูกติ๊กเลือก
+        const checkboxes = document.querySelectorAll('.payer-checkbox:checked');
+        const selectedPayers = Array.from(checkboxes).map(cb => cb.value);
+
+        if (isNaN(price) || price <= 0) {
+            alert('กรุณาระบุราคาให้ถูกต้อง');
+            return;
+        }
+        if (selectedPayers.length === 0) {
+            alert('กรุณาเลือกอย่างน้อย 1 คนที่ต้องจ่ายรายการนี้');
+            return;
+        }
+
+        items.push({
+            id: Date.now(),
+            name: name,
+            price: price,
+            payers: selectedPayers
+        });
+
+        // Reset inputs
+        nameInput.value = '';
+        priceInput.value = '';
+        toggleSelectAll(false); // เคลียร์ checkbox
+
+        renderItemsTable();
+        calculateTotal();
+    }
+
+    function removeItem(id) {
+        items = items.filter(item => item.id !== id);
+        renderItemsTable();
+        calculateTotal();
+    }
+
+    function renderItemsTable() {
+        const tbody = document.getElementById('items-table-body');
+        const tfoot = document.getElementById('total-food-price');
+        
+        let html = '';
+        let totalFood = 0;
+
+        items.forEach(item => {
+            totalFood += item.price;
+            // สร้าง text แสดงชื่อคนหาร (เช่น "A, B (+2)")
+            let payersText = item.payers.slice(0, 3).join(', ');
+            if (item.payers.length > 3) payersText += ` และอีก ${item.payers.length - 3} คน`;
+            
+            html += `
+                <tr class="bg-white border-b hover:bg-gray-50">
+                    <td class="px-4 py-2 font-medium text-gray-900">${item.name}</td>
+                    <td class="px-4 py-2 text-right">${item.price.toLocaleString()}</td>
+                    <td class="px-4 py-2 text-gray-500 text-xs">
+                        <span class="bg-gray-100 px-2 py-1 rounded text-gray-600">หาร ${item.payers.length}</span>
+                        <span class="ml-1">${payersText}</span>
+                    </td>
+                    <td class="px-4 py-2 text-center">
+                        <button onclick="removeItem(${item.id})" class="text-red-400 hover:text-red-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+
+        tbody.innerHTML = html;
+        tfoot.innerText = totalFood.toLocaleString('th-TH', {minimumFractionDigits: 2});
+    }
+
+    // 3. ฟังก์ชันคำนวณเงิน (Core Logic)
+    function calculateTotal() {
+        // สร้าง object เก็บยอดเงินของแต่ละคน
+        let personTotals = {}; 
+        people.forEach(p => personTotals[p] = 0);
+
+        let totalFood = 0;
+
+        // วนลูปทุกรายการ
+        items.forEach(item => {
+            totalFood += item.price;
+            const splitPrice = item.price / item.payers.length; // ราคาต่อคนสำหรับรายการนี้
+            
+            item.payers.forEach(payer => {
+                if (personTotals[payer] !== undefined) {
+                    personTotals[payer] += splitPrice;
+                }
+            });
+        });
+
+        // คำนวณ VAT/Service
+        const hasService = document.getElementById('svc-check').checked;
+        const hasVat = document.getElementById('vat-check').checked;
+
+        let grandTotal = 0;
+        let summaryHtml = '';
+
+        // แสดงผลลัพธ์รายบุคคล
+        if (people.length > 0) {
+            people.forEach(p => {
+                let baseAmount = personTotals[p] || 0;
+                
+                // คำนวณเพิ่ม
+                let svcAmount = hasService ? baseAmount * 0.10 : 0;
+                let vatAmount = hasVat ? (baseAmount + svcAmount) * 0.07 : 0;
+                let finalAmount = baseAmount + svcAmount + vatAmount;
+                
+                grandTotal += finalAmount;
+
+                summaryHtml += `
+                    <div class="flex justify-between items-center bg-white/10 p-2 rounded-lg">
+                        <span class="font-bold">${p}</span>
+                        <div class="text-right">
+                            <span class="block font-bold text-lg">${finalAmount.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                        </div>
+                    </div>
+                `;
+            });
+        } else {
+            summaryHtml = '<div class="text-center text-sky-100 py-4 opacity-70">ยังไม่มีรายชื่อคน</div>';
+        }
+
+        document.getElementById('summary-container').innerHTML = summaryHtml;
+        document.getElementById('grand-total').innerText = grandTotal.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    }
+
+    // Initial Render
+    renderPeople();
+    renderPayerCheckboxes();
+</script>
+{% endblock %}

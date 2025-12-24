@@ -26,6 +26,7 @@ from .views import (
     AdminResolveReportView,
     ReportDetailView,
     generate_promptpay_qr,
+    BillCalculatorView,
 
 )
 
@@ -81,4 +82,6 @@ urlpatterns = [
     
     # URL สำหรับ Generate QR Code PromptPay
     path('api/generate-qr/', generate_promptpay_qr, name='generate-qr'),
+
+    path('tools/calculator/', BillCalculatorView.as_view(), name='bill-calculator'),
 ]
