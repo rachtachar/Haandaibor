@@ -201,3 +201,6 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # 3. (เผื่อไว้) ป้องกัน CSRF Error เวลาใช้ https
 CSRF_TRUSTED_ORIGINS = ['https://busy-cricket-slowly.ngrok-free.app']
+
+SOCIALACCOUNT_LOGIN_ON_GET=True
+SOCIALACCOUNT_AUTO_SIGNUP = True
