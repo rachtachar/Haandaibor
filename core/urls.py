@@ -27,6 +27,10 @@ from .views import (
     ReportDetailView,
     generate_promptpay_qr,
     BillCalculatorView,
+    NotificationListView, 
+    mark_notification_read,
+    mark_all_notifications_read,
+    leave_party,
 
 )
 
@@ -84,4 +88,10 @@ urlpatterns = [
     path('api/generate-qr/', generate_promptpay_qr, name='generate-qr'),
 
     path('tools/calculator/', BillCalculatorView.as_view(), name='bill-calculator'),
+
+    path('notifications/', NotificationListView.as_view(), name='notification-list'),
+    path('notifications/<int:pk>/read/', mark_notification_read, name='notification-read'),
+    path('notifications/read-all/', mark_all_notifications_read, name='notification-read-all'),
+
+    path('post/<int:pk>/leave/', leave_party, name='leave-party'),
 ]

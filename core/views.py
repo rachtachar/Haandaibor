@@ -1,4 +1,6 @@
 # core/views.py
+from django.db.models import Q, Count, F
+
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy, reverse
 from django.views.generic import (
@@ -7,7 +9,7 @@ from django.views.generic import (
 )
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.decorators import login_required
-from .models import Post, User, JoinRequest, ChatMessage, ProfileComment
+from .models import Post, User, JoinRequest, ChatMessage, ProfileComment, Report, Notification
 from .forms import PostForm, ChatMessageForm, ProfileCommentForm, ProfileUpdateForm
 from django.http import HttpResponseForbidden
 from django.http import JsonResponse
@@ -22,7 +24,6 @@ from promptpay import qrcode as promptpay_qrcode # หรือใช้ library
 from django.http import HttpResponse
 
 
-
 # ========== ส่วนจัดการโพสต์ (CRUD) ==========
 class HomepageView(ListView):
     model = Post
@@ -34,8 +35,39 @@ class PostListView(ListView):
     model = Post
     template_name = 'core/post_list.html'
     context_object_name = 'posts'
-    ordering = ['-created_at'] # เรียงโพสต์ใหม่สุดขึ้นก่อน
+    ordering = ['-created_at']
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        
+        search_query = self.request.GET.get('q')
+        category_filter = self.request.GET.get('category')
+        status_filter = self.request.GET.get('status') # <--- รับค่าสถานะ
+
+        queryset = queryset.annotate(current_members=Count('members'))
+
+        if search_query:
+            queryset = queryset.filter(
+                Q(title__icontains=search_query) | 
+                Q(description__icontains=search_query)
+            )
+
+        if category_filter:
+            queryset = queryset.filter(category=category_filter)
+
+        # ★ กรองสถานะตรงนี้เหมือนกัน ★
+        if status_filter == 'available':
+            queryset = queryset.filter(current_members__lt=F('member_limit'))
+        elif status_filter == 'full':
+            queryset = queryset.filter(current_members__gte=F('member_limit'))
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['categories'] = Post.CATEGORY_CHOICES 
+        return context
+    
 class PostDetailView(DetailView):
     model = Post
     # template_name คือ core/post_detail.html (อัตโนมัติ)
@@ -86,12 +118,22 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 @login_required
 def request_join_post(request, pk):
     post = get_object_or_404(Post, pk=pk)
-    # ป้องกันไม่ให้เจ้าของโพสต์กดขอเข้าร่วมโพสต์ตัวเอง
     if post.owner == request.user:
         return redirect('post-detail', pk=post.pk)
     
-    # สร้างคำขอเข้าร่วม
-    JoinRequest.objects.get_or_create(post=post, user=request.user)
+    # สร้างคำขอ (get_or_create จะคืนค่ามา 2 ตัวคือ object กับ boolean created)
+    join_req, created = JoinRequest.objects.get_or_create(post=post, user=request.user)
+
+    # ★ เพิ่ม: ถ้าเพิ่งสร้างใหม่ ให้แจ้งเตือนเจ้าของโพสต์ ★
+    if created:
+        Notification.objects.create(
+            recipient=post.owner,
+            sender=request.user,
+            post=post,
+            message=f"คุณ {request.user.username} ขอเข้าร่วมปาร์ตี้ '{post.title}'",
+            link=reverse('post-detail', kwargs={'pk': post.pk})
+        )
+
     return redirect('post-detail', pk=post.pk)
 
 @login_required
@@ -104,18 +146,35 @@ def manage_join_request(request, request_id, action):
         return HttpResponseForbidden("You are not allowed to manage this request.")
 
     if action == 'approve':
-        # ★ 2. เพิ่มเงื่อนไขตรวจสอบว่าปาร์ตี้เต็มหรือยัง ★
         if post.members.count() >= post.member_limit:
             messages.error(request, "ไม่สามารถอนุมัติได้ เนื่องจากปาร์ตี้เต็มแล้ว!")
             return redirect('post-detail', pk=post.pk)
 
         join_request.status = 'APPROVED'
-        post.members.add(join_request.user) # เพิ่ม user เข้ากลุ่ม members
-        messages.success(request, f"อนุมัติคุณ {join_request.user.username} เข้าปาร์ตี้เรียบร้อยแล้ว")
+        post.members.add(join_request.user)
+        messages.success(request, f"อนุมัติคุณ {join_request.user.username} แล้ว")
+        
+        # ★ เพิ่ม: แจ้งเตือน user ว่าผ่านแล้ว ★
+        Notification.objects.create(
+            recipient=join_request.user,
+            sender=request.user,
+            post=post,
+            message=f"คำขอเข้าร่วมปาร์ตี้ '{post.title}' ได้รับการอนุมัติแล้ว! 🎉",
+            link=reverse('post-detail', kwargs={'pk': post.pk})
+        )
         
     elif action == 'reject':
         join_request.status = 'REJECTED'
         messages.info(request, "ปฏิเสธคำขอแล้ว")
+
+        # ★ เพิ่ม: แจ้งเตือน user ว่าไม่ผ่าน ★
+        Notification.objects.create(
+            recipient=join_request.user,
+            sender=request.user,
+            post=post,
+            message=f"คำขอเข้าร่วมปาร์ตี้ '{post.title}' ถูกปฏิเสธ 😔",
+            link=reverse('post-detail', kwargs={'pk': post.pk})
+        )
     
     join_request.save()
     return redirect('post-detail', pk=post.pk)
@@ -135,6 +194,14 @@ def kick_member(request, pk, user_id):
     # 3. (สำคัญ) ลบคำขอเข้าร่วม (JoinRequest) เดิมทิ้งด้วย
     # เพื่อให้สถานะรีเซ็ต เผื่อในอนาคตเขาอยากขอเข้าใหม่ หรือกันความสับสน
     JoinRequest.objects.filter(post=post, user=user_to_kick).delete()
+
+    Notification.objects.create(
+        recipient=user_to_kick, # ต้องแน่ใจว่าตัวแปร user_to_kick มีอยู่จริงจากโค้ดเดิม
+        sender=request.user,
+        post=post,
+        message=f"คุณถูกเชิญออกจากปาร์ตี้ '{post.title}'",
+        link=reverse('home')
+    )
 
     return redirect('post-detail', pk=post.pk)
 
@@ -411,3 +478,52 @@ def generate_promptpay_qr(request):
 
 class BillCalculatorView(TemplateView):
     template_name = 'core/bill_calculator.html'
+
+class NotificationListView(LoginRequiredMixin, ListView):
+    model = Notification
+    template_name = 'core/notification_list.html'
+    context_object_name = 'notifications'
+    paginate_by = 20
+
+    def get_queryset(self):
+        # ดึงแจ้งเตือนของคนนั้นๆ
+        return Notification.objects.filter(recipient=self.request.user)
+
+@login_required
+def mark_notification_read(request, pk):
+    noti = get_object_or_404(Notification, pk=pk)
+    if noti.recipient == request.user:
+        noti.is_read = True
+        noti.save()
+        # ถ้ามีลิงก์ ให้เด้งไปลิงก์นั้น
+        if noti.link:
+            return redirect(noti.link)
+    # ถ้าไม่มีลิงก์ หรือไม่ใช่เจ้าของ ให้กลับไปหน้า list
+    return redirect('notification-list')
+
+@login_required
+def mark_all_notifications_read(request):
+    Notification.objects.filter(recipient=request.user, is_read=False).update(is_read=True)
+    return redirect('notification-list')
+
+@login_required
+@require_POST # บังคับว่าต้องกดปุ่ม (POST method) เท่านั้นเพื่อความปลอดภัย
+def leave_party(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+
+    # ตรวจสอบว่าผู้ใช้เป็นสมาชิก และไม่ใช่เจ้าของ
+    if request.user in post.members.all() and request.user != post.owner:
+        # 1. ลบออกจากสมาชิก
+        post.members.remove(request.user)
+        
+        # 2. ลบคำขอ JoinRequest เดิมทิ้ง (เพื่อให้สถานะคลีน เผื่ออยากขอเข้าใหม่)
+        JoinRequest.objects.filter(post=post, user=request.user).delete()
+        
+        # 3. แจ้งเตือน (Optional: ถ้ามีระบบแจ้งเตือนเจ้าของว่ามีคนออก ก็ใส่ตรงนี้ได้)
+        # Notification.objects.create(...) 
+
+        messages.success(request, f"คุณได้ออกจากปาร์ตี้ '{post.title}' เรียบร้อยแล้ว")
+    else:
+        messages.error(request, "คุณไม่สามารถออกจากปาร์ตี้นี้ได้")
+
+    return redirect('home') # หรือจะกลับไปหน้า post-detail ก็ได้
