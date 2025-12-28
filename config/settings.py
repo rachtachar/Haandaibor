@@ -215,7 +215,7 @@ EMAIL_FILE_PATH = BASE_DIR / 'sent_emails'  # Emails will be saved here
 # ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
 # ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 
-NPM_BIN_PATH = "C:/Program Files/nodejs/npm.cmd"
+# NPM_BIN_PATH = "C:/Program Files/nodejs/npm.cmd"
 
 # === การตั้งค่าสำหรับ Ngrok และ HTTPS ===
 # 1. บังคับให้ Allauth สร้างลิงก์เป็น https เสมอ
