@@ -1,0 +1,7 @@
+env/
+__pycache__/
+*.pyc
+db.sqlite3
+.env
+staticfiles/
+theme/static_src/node_modules/

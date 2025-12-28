@@ -1,3 +1,9 @@
+import os
+import dj_database_url
+
+
+
+
 """
 Django settings for config project.
 
@@ -19,11 +25,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-a9b)wq_#+$-ow&_%dvl&$ax1d383k0)-(2y8m38+den1n@e$)m'
+# # SECURITY WARNING: keep the secret key used in production secret!
+# SECRET_KEY = 'django-insecure-a9b)wq_#+$-ow&_%dvl&$ax1d383k0)-(2y8m38+den1n@e$)m'
+# # SECURITY WARNING: don't run with debug turned on in production!
+# DEBUG = True
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+#Deployment settings
+# อ่านค่าจาก Environment ถ้าไม่มีให้เป็นค่า Default (สำหรับการทดสอบ)
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-your-dev-key')
+# ถ้าบน Server จะเป็น False อัตโนมัติ
+DEBUG = 'RENDER' not in os.environ 
+
+ALLOWED_HOSTS = ['*'] # อนุญาตทุกโดเมน หรือใส่ชื่อเว็บคุณตอนได้มาแล้ว
 
 ALLOWED_HOSTS = ['busy-cricket-slowly.ngrok-free.app', 'localhost', '127.0.0.1',"busy-cricket-slowly.ngrok-free.app"]
 CSRF_TRUSTED_ORIGINS = ['https://*.ngrok-free.app']
@@ -56,6 +69,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -96,17 +110,24 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'haandaibor', # ชื่อ database ที่สร้างไว้
-        'USER': 'postgres', # ชื่อ user ของ database
-        'PASSWORD': '1234', # รหัสผ่าน
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'haandaibor', # ชื่อ database ที่สร้างไว้
+#         'USER': 'postgres', # ชื่อ user ของ database
+#         'PASSWORD': '1234', # รหัสผ่าน
+#         'HOST': 'localhost',
+#         'PORT': '5432',
+#     }
+# }
 
+#deployment database settings
+DATABASES = {
+    'default': dj_database_url.config(
+        default='postgresql://postgres:1234@localhost:5432/haandaibor',
+        conn_max_age=600
+    )
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -143,6 +164,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+
+# โฟลเดอร์ที่จะรวบรวมไฟล์จริง
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -205,3 +229,5 @@ CSRF_TRUSTED_ORIGINS = ['https://busy-cricket-slowly.ngrok-free.app']
 
 SOCIALACCOUNT_LOGIN_ON_GET=True
 SOCIALACCOUNT_AUTO_SIGNUP = True
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
