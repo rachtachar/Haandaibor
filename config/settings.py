@@ -38,8 +38,8 @@ DEBUG = 'RENDER' not in os.environ
 
 ALLOWED_HOSTS = ['*'] # อนุญาตทุกโดเมน หรือใส่ชื่อเว็บคุณตอนได้มาแล้ว
 
-ALLOWED_HOSTS = ['busy-cricket-slowly.ngrok-free.app', 'localhost', '127.0.0.1',"busy-cricket-slowly.ngrok-free.app"]
-CSRF_TRUSTED_ORIGINS = ['https://*.ngrok-free.app']
+ALLOWED_HOSTS = ['busy-cricket-slowly.ngrok-free.app', 'localhost', '127.0.0.1',"busy-cricket-slowly.ngrok-free.app",'haandaibor.onrender.com',]
+CSRF_TRUSTED_ORIGINS = ['https://*.onrender.com', 'https://*.ngrok-free.app']
 
 
 # Application definition
