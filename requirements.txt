@@ -15,3 +15,5 @@ crispy-tailwind
 qrcode
 promptpay
 requests
+PyJWT
+cryptography
