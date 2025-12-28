@@ -14,3 +14,4 @@ django-crispy-forms
 crispy-tailwind
 qrcode
 promptpay
+requests
