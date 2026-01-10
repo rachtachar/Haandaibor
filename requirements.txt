@@ -18,3 +18,5 @@ requests
 PyJWT
 cryptography
 django-browser-reload
+cloudinary
+django-cloudinary-storage

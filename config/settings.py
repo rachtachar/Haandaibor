@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'cloudinary_storage',
     'django.contrib.staticfiles',
 
     'django.contrib.sites',
@@ -65,6 +66,8 @@ INSTALLED_APPS = [
     'theme',
     
     'core',
+
+    'cloudinary',
 ]
 
 MIDDLEWARE = [
@@ -244,3 +247,29 @@ SOCIALACCOUNT_LOGIN_ON_GET=True
 SOCIALACCOUNT_AUTO_SIGNUP = True
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+
+# settings.py (ล่างสุด)
+
+# ตั้งค่าการ Authentication
+# (แนะนำให้ใส่ใน Environment Variable ดีที่สุด แต่ถ้าจะ Test ในเครื่องชั่วคราว ใส่ String ตรงนี้ได้)
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': 'dyc5cviqh',
+    'API_KEY': '552484323575527',
+    'API_SECRET': 'oNTdzfFmg_GaI7WIP-gcuOXbPkY',
+}
+# หรือถ้าใช้ CLOUDINARY_URL แบบบรรทัดเดียว ระบบจะอ่านค่าจาก Environment เองอัตโนมัติ
+
+# เช็คว่าเราอยู่บน Server (มี CLOUDINARY_URL) หรือเปล่า
+if 'CLOUDINARY_URL' in os.environ:
+    # ✅ Production (Render/Vercel) -> เก็บรูปที่ Cloudinary
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    
+    # (Optional) ถ้าอยากเก็บ Static Files (CSS/JS) บน Cloudinary ด้วย ให้เปิดบรรทัดนี้
+    # STATICFILES_STORAGE = 'cloudinary_storage.storage.StaticHashedCloudinaryStorage'
+    
+else:
+    # ✅ Localhost (เครื่องเรา) -> เก็บรูปในเครื่องเหมือนเดิม
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = BASE_DIR / 'media'
