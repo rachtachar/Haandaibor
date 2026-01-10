@@ -221,59 +221,42 @@ SOCIALACCOUNT_PROVIDERS = {
 if DEBUG:
     # Add django_browser_reload only in DEBUG mode
     INSTALLED_APPS += ['django_browser_reload']
-
     MIDDLEWARE += ['django_browser_reload.middleware.BrowserReloadMiddleware']
 
 TAILWIND_APP_NAME = "theme"
 ACCOUNT_EMAIL_REQUIRED = True
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
-EMAIL_FILE_PATH = BASE_DIR / 'sent_emails'  # Emails will be saved here
-# ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
-# ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
-
-# NPM_BIN_PATH = "C:/Program Files/nodejs/npm.cmd"
+EMAIL_FILE_PATH = BASE_DIR / 'sent_emails'
 
 # === การตั้งค่าสำหรับ Ngrok และ HTTPS ===
-# 1. บังคับให้ Allauth สร้างลิงก์เป็น https เสมอ
 ACCOUNT_DEFAULT_HTTP_PROTOCOL = "https"
-
-# 2. บอก Django ว่าถ้าเจอ Header นี้ (จาก ngrok) ให้ถือว่าเป็น HTTPS
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-
-# 3. (เผื่อไว้) ป้องกัน CSRF Error เวลาใช้ https
-CSRF_TRUSTED_ORIGINS = ['https://busy-cricket-slowly.ngrok-free.app']
-
-SOCIALACCOUNT_LOGIN_ON_GET=True
+SOCIALACCOUNT_LOGIN_ON_GET = True
 SOCIALACCOUNT_AUTO_SIGNUP = True
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-
-# settings.py (ล่างสุด)
-
-# ตั้งค่าการ Authentication
-# (แนะนำให้ใส่ใน Environment Variable ดีที่สุด แต่ถ้าจะ Test ในเครื่องชั่วคราว ใส่ String ตรงนี้ได้)
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': 'dyc5cviqh',
-    'API_KEY': '552484323575527',
-    'API_SECRET': 'oNTdzfFmg_GaI7WIP-gcuOXbPkY',
-}
-# หรือถ้าใช้ CLOUDINARY_URL แบบบรรทัดเดียว ระบบจะอ่านค่าจาก Environment เองอัตโนมัติ
-
-# config/settings.py
-
-# 1. เช็คว่านำเข้า os หรือยัง
+# ==========================================
+# ✅ ส่วนจัดการ Cloudinary & Media (แก้ใหม่)
+# ==========================================
 import os
 
-# 2. ต้องไม่มีบรรทัดนี้ลอยๆ อยู่ข้างนอก (ถ้ามีให้ลบออก หรือย้ายไปไว้ใน else)
-# MEDIA_URL = '/media/'  <-- ❌ ตัวร้าย! ถ้าวางไว้ตรงนี้ มันจะทับการตั้งค่าของ Cloudinary
+# ตั้งค่า key สำหรับ Cloudinary
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', 'dyc5cviqh'),
+    'API_KEY': os.environ.get('CLOUDINARY_API_KEY', '552484323575527'),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', 'oNTdzfFmg_GaI7WIP-gcuOXbPkY'),
+}
 
+# ตรวจสอบว่ามี CLOUDINARY_URL ใน Environment หรือไม่ (Render จะมีค่านี้)
 if 'CLOUDINARY_URL' in os.environ:
-    # ✅ กรณีอยู่บน Render (มี Env Var)
+    # ☁️ Production (Render): ใช้ Cloudinary เก็บรูป
+    print("--- Using Cloudinary Storage ---")
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-    print("--- Using Cloudinary Storage ---") # ใส่ไว้เช็คใน Log ได้
+    # ห้ามใส่ MEDIA_URL หรือ MEDIA_ROOT ตรงนี้เด็ดขาด Cloudinary จะจัดการเอง
 else:
-    # ✅ กรณีอยู่บนเครื่อง (Local)
+    # 💻 Local (เครื่องเรา): เก็บรูปลงโฟลเดอร์ media ในเครื่อง
+    print("--- Using Local File Storage ---")
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
     MEDIA_URL = '/media/'
     MEDIA_ROOT = BASE_DIR / 'media'
