@@ -110,16 +110,29 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'haandaibor', # ชื่อ database ที่สร้างไว้
-        'USER': 'postgres', # ชื่อ user ของ database
-        'PASSWORD': '1234', # รหัสผ่าน
-        'HOST': 'localhost',
-        'PORT': '5432',
+if 'DATABASE_URL' in os.environ:
+    # ✅ กรณีอยู่บน Vercel (Production)
+    # มันจะอ่านค่าจาก Environment Variable ที่เราตั้งไว้ใน Vercel
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=os.environ.get('DATABASE_URL'),
+            conn_max_age=600,
+            conn_health_checks=True,
+            ssl_require=True,
+        )
     }
-}
+else:
+    # ✅ กรณีอยู่บนเครื่องเรา (Localhost)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'haandaibor',
+            'USER': 'postgres',      # ชื่อ User ของคุณ
+            'PASSWORD': '1234',      # รหัสผ่านของคุณ
+            'HOST': 'localhost',
+            'PORT': '5432',
+        }
+    }
 
 # #deployment database settings
 # DATABASES = {
