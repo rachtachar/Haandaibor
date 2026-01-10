@@ -204,9 +204,9 @@ CRISPY_TEMPLATE_PACK = "tailwind"
 AUTH_USER_MODEL = 'core.User'
 
 
-import os
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# import os
+# MEDIA_URL = '/media/'
+# MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
