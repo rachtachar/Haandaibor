@@ -244,15 +244,29 @@ import os
 # ตั้งค่า key สำหรับ Cloudinary
 
 
-# เช็คว่ารันบน Render หรือไม่ (Render จะมีตัวแปรชื่อ RENDER เสมอ)
+# เช็คว่ารันบน Render หรือไม่
 if 'RENDER' in os.environ:
-    # ☁️ Production (Render): บังคับใช้ Cloudinary
     print("--- 🟢 Using Cloudinary Storage (Render Detected) ---")
-    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-    # ไม่ต้องตั้งค่า MEDIA_URL ตรงนี้ Cloudinary จะจัดการเอง
+    
+    STORAGES = {
+        "default": {
+            "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
+    }
 else:
-    # 💻 Local (เครื่องเรา): เก็บรูปลงโฟลเดอร์ media ในเครื่อง
-    print("--- 🟡 Using Local File Storage ---")
-    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+    print("--- 🏠 Using Local File Storage ---")
+    
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
+    }
+    
     MEDIA_URL = '/media/'
     MEDIA_ROOT = BASE_DIR / 'media'
