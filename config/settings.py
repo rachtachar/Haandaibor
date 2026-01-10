@@ -254,6 +254,10 @@ if 'RENDER' in os.environ:
         },
         "staticfiles": {
             "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+            "OPTIONS": {
+                # 👇 เพิ่มบรรทัดนี้: บอกให้ข้ามไฟล์ที่หาไม่เจอไปเลย ไม่ต้อง Error
+                "manifest_strict": False,
+            },
         },
     }
 else:
