@@ -243,20 +243,20 @@ import os
 
 # ตั้งค่า key สำหรับ Cloudinary
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', 'dyc5cviqh'),
-    'API_KEY': os.environ.get('CLOUDINARY_API_KEY', '552484323575527'),
-    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', 'oNTdzfFmg_GaI7WIP-gcuOXbPkY'),
+    'CLOUD_NAME': 'dyc5cviqh',
+    'API_KEY': '552484323575527',
+    'API_SECRET': 'oNTdzfFmg_GaI7WIP-gcuOXbPkY',
 }
 
-# ตรวจสอบว่ามี CLOUDINARY_URL ใน Environment หรือไม่ (Render จะมีค่านี้)
-if 'CLOUDINARY_URL' in os.environ:
-    # ☁️ Production (Render): ใช้ Cloudinary เก็บรูป
-    print("--- Using Cloudinary Storage ---")
+# เช็คว่ารันบน Render หรือไม่ (Render จะมีตัวแปรชื่อ RENDER เสมอ)
+if 'RENDER' in os.environ:
+    # ☁️ Production (Render): บังคับใช้ Cloudinary
+    print("--- 🟢 Using Cloudinary Storage (Render Detected) ---")
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-    # ห้ามใส่ MEDIA_URL หรือ MEDIA_ROOT ตรงนี้เด็ดขาด Cloudinary จะจัดการเอง
+    # ไม่ต้องตั้งค่า MEDIA_URL ตรงนี้ Cloudinary จะจัดการเอง
 else:
     # 💻 Local (เครื่องเรา): เก็บรูปลงโฟลเดอร์ media ในเครื่อง
-    print("--- Using Local File Storage ---")
+    print("--- 🟡 Using Local File Storage ---")
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
     MEDIA_URL = '/media/'
     MEDIA_ROOT = BASE_DIR / 'media'
