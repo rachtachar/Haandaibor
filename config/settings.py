@@ -260,16 +260,20 @@ CLOUDINARY_STORAGE = {
 }
 # หรือถ้าใช้ CLOUDINARY_URL แบบบรรทัดเดียว ระบบจะอ่านค่าจาก Environment เองอัตโนมัติ
 
-# เช็คว่าเราอยู่บน Server (มี CLOUDINARY_URL) หรือเปล่า
+# config/settings.py
+
+# 1. เช็คว่านำเข้า os หรือยัง
+import os
+
+# 2. ต้องไม่มีบรรทัดนี้ลอยๆ อยู่ข้างนอก (ถ้ามีให้ลบออก หรือย้ายไปไว้ใน else)
+# MEDIA_URL = '/media/'  <-- ❌ ตัวร้าย! ถ้าวางไว้ตรงนี้ มันจะทับการตั้งค่าของ Cloudinary
+
 if 'CLOUDINARY_URL' in os.environ:
-    # ✅ Production (Render/Vercel) -> เก็บรูปที่ Cloudinary
+    # ✅ กรณีอยู่บน Render (มี Env Var)
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-    
-    # (Optional) ถ้าอยากเก็บ Static Files (CSS/JS) บน Cloudinary ด้วย ให้เปิดบรรทัดนี้
-    # STATICFILES_STORAGE = 'cloudinary_storage.storage.StaticHashedCloudinaryStorage'
-    
+    print("--- Using Cloudinary Storage ---") # ใส่ไว้เช็คใน Log ได้
 else:
-    # ✅ Localhost (เครื่องเรา) -> เก็บรูปในเครื่องเหมือนเดิม
+    # ✅ กรณีอยู่บนเครื่อง (Local)
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
     MEDIA_URL = '/media/'
     MEDIA_ROOT = BASE_DIR / 'media'
