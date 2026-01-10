@@ -2,11 +2,10 @@
 # exit on error
 set -o errexit
 
-# 1. Install Python dependencies
 pip install -r requirements.txt
 
-# 2. Collect Static files
+# สั่งรวบรวมไฟล์ Static (CSS/JS)
 python manage.py collectstatic --no-input
 
-# 3. Migrate Database
+# สั่ง Migrate Database (สร้างตาราง)
 python manage.py migrate
