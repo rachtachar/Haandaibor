@@ -72,7 +72,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    # 'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -246,18 +246,16 @@ import os
 
 # เช็คว่ารันบน Render หรือไม่
 if 'RENDER' in os.environ:
-    print("--- 🟢 Using Cloudinary Storage (Render Detected) ---")
+    print("--- 🟢 Using Cloudinary for BOTH Media & Static ---")
     
     STORAGES = {
         "default": {
+            # เก็บรูปภาพที่อัปโหลด
             "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
         },
         "staticfiles": {
-            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-            "OPTIONS": {
-                # 👇 เพิ่มบรรทัดนี้: บอกให้ข้ามไฟล์ที่หาไม่เจอไปเลย ไม่ต้อง Error
-                "manifest_strict": False,
-            },
+            # เก็บไฟล์ CSS/JS ของเว็บ (ใช้ Cloudinary แทน Whitenoise)
+            "BACKEND": "cloudinary_storage.storage.StaticHashedCloudinaryStorage",
         },
     }
 else:
@@ -268,7 +266,7 @@ else:
             "BACKEND": "django.core.files.storage.FileSystemStorage",
         },
         "staticfiles": {
-            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
         },
     }
     
