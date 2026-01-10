@@ -242,11 +242,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 import os
 
 # ตั้งค่า key สำหรับ Cloudinary
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': 'dyc5cviqh',
-    'API_KEY': '552484323575527',
-    'API_SECRET': 'oNTdzfFmg_GaI7WIP-gcuOXbPkY',
-}
+
 
 # เช็คว่ารันบน Render หรือไม่ (Render จะมีตัวแปรชื่อ RENDER เสมอ)
 if 'RENDER' in os.environ:
