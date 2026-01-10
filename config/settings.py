@@ -110,24 +110,24 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'haandaibor', # ชื่อ database ที่สร้างไว้
-#         'USER': 'postgres', # ชื่อ user ของ database
-#         'PASSWORD': '1234', # รหัสผ่าน
-#         'HOST': 'localhost',
-#         'PORT': '5432',
-#     }
-# }
-
-#deployment database settings
 DATABASES = {
-    'default': dj_database_url.config(
-        default='postgresql://postgres:1234@localhost:5432/haandaibor',
-        conn_max_age=600
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'haandaibor', # ชื่อ database ที่สร้างไว้
+        'USER': 'postgres', # ชื่อ user ของ database
+        'PASSWORD': '1234', # รหัสผ่าน
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
 }
+
+# #deployment database settings
+# DATABASES = {
+#     'default': dj_database_url.config(
+#         default='postgresql://postgres:1234@localhost:5432/haandaibor',
+#         conn_max_age=600
+#     )
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
