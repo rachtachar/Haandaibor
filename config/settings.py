@@ -68,6 +68,8 @@ INSTALLED_APPS = [
     'core',
 
     'cloudinary',
+
+    'django_extensions',
 ]
 
 MIDDLEWARE = [
