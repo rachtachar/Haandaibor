@@ -51,14 +51,14 @@
                     </a>
                     <a href="{% url 'post-list' %}"
                         class="text-gray-600 hover:text-sky-600 hover:bg-sky-50 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
-                        ดูโพสต์
+                        ดูปาร์ตี้
                     </a>
                     
                     {% if user.is_authenticated %}
                     
                     <a href="{% url 'post-create' %}"
                         class="text-gray-600 hover:text-sky-600 hover:bg-sky-50 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
-                        สร้างโพสต์
+                        สร้างปาร์ตี้
                     </a>
                     <a href="{% url 'profile' user.pk %}"
                         class="text-gray-600 hover:text-sky-600 hover:bg-sky-50 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
