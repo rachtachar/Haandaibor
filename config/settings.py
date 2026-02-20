@@ -69,6 +69,8 @@ INSTALLED_APPS = [
 
     'cloudinary',
 
+    'django_extensions',
+
     # 'django_extensions', #for mock data generation
 ]
 
