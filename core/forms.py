@@ -8,6 +8,7 @@ class PostForm(forms.ModelForm):
     class Meta:
         model = Post # กำหนดให้ฟอร์มนี้เชื่อมต่อกับโมเดลที่ชื่อว่า Post
         fields = ['title', 'description', 'category', 'member_limit', 'full_price', 'image']
+        
         lables = {
             'title': 'ชื่อโพสต์',
             'description': 'รายละเอียด',
