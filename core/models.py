@@ -16,6 +16,8 @@ class Post(models.Model):
         ('MOVIE', 'หนัง'),
         ('MUSIC', 'ดนตรี'),
         ('PRODUCT', 'สินค้า'),
+        ('FOOD', 'อาหาร'),
+        ('OTHER', 'อื่นๆ'),
     ]
 
     title = models.CharField(max_length=200)

@@ -8,7 +8,14 @@ class PostForm(forms.ModelForm):
     class Meta:
         model = Post # กำหนดให้ฟอร์มนี้เชื่อมต่อกับโมเดลที่ชื่อว่า Post
         fields = ['title', 'description', 'category', 'member_limit', 'full_price', 'image']
-
+        lables = {
+            'title': 'ชื่อโพสต์',
+            'description': 'รายละเอียด',
+            'category': 'หมวดหมู่',
+            'member_limit': 'จำนวนสมาชิกที่รับได้(รวมเจ้าของปาร์ตี้)',
+            'full_price': 'ราคาเต็มของโปรโมชั่น/บริการ/สินค้า',
+            'image': 'รูปภาพ',
+        }
 
 class ChatMessageForm(forms.ModelForm):
     message = forms.CharField(
