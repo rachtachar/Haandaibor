@@ -95,7 +95,7 @@
                         <div class="flex-1 bg-white p-5 rounded-2xl rounded-tl-none shadow-sm border border-sky-50 relative hover:shadow-md transition-shadow">
                             <div class="flex justify-between items-baseline mb-2">
                                 <h4 class="text-sm font-bold text-sky-900">{{ comment.author.username }}</h4>
-                                <span class="text-[10px] text-gray-400 uppercase tracking-wide">{{ comment.created_at|timesince }} ago</span>
+                                <span class="text-[10px] text-gray-400 uppercase tracking-wide">{{ comment.created_at|date:"d/m/y" }} </span>
                             </div>
                             <p class="text-gray-700 text-sm leading-relaxed">{{ comment.comment }}</p>
                         </div>
