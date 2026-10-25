@@ -214,8 +214,8 @@ AUTH_USER_MODEL = 'core.User'
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'APP': {
-            'client_id': '940563183804-53ckcqld1qjltadhg52l4a2gbeevqki1.apps.googleusercontent.com',
-            'secret': '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',
+            'client_id': os.environ.get('GOOGLE_CLIENT_ID', ''),
+            'secret': os.environ.get('GOOGLE_CLIENT_SECRET', ''),
             'key': ''
         }
     }
@@ -249,7 +249,7 @@ import os
 
 # เช็คว่ารันบน Render หรือไม่
 if 'RENDER' in os.environ:
-    print("--- 🟢 Using Cloudinary for BOTH Media & Static ---")
+    print("--- [Cloudinary] Using Cloudinary for BOTH Media & Static ---")
     
     STORAGES = {
         "default": {
@@ -262,7 +262,7 @@ if 'RENDER' in os.environ:
         },
     }
 else:
-    print("--- 🏠 Using Local File Storage ---")
+    print("--- [Local] Using Local File Storage ---")
     
     STORAGES = {
         "default": {

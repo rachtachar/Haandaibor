@@ -1,7 +1,45 @@
-env/
+# Python & Bytecode
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual Environments
+env/
+venv/
+.venv/
+ENV/
+
+# Database
+*.sqlite3
 db.sqlite3
+
+# Environment Variables & Secrets
 .env
+.env.*
+!.env.example
+
+# Static & Build files
 staticfiles/
 theme/static_src/node_modules/
+node_modules/
+
+# User Media & Uploads (ยกเว้น default.jpg สำหรับรูปโปรไฟล์เริ่มต้น)
+media/*
+!media/profile_pics/
+media/profile_pics/*
+!media/profile_pics/default.jpg
+
+# Development logs & emails
+sent_emails/
+*.log
+
+# Temporary / Diagram dumps
+myapp_models*
+.qodo/
+
+# OS & Editor generated files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
